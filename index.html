@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Verona romana in 3D da esplorare a piedi o in volo: foro, Capitolium, Arena, Teatro, porte e ponti, sulla pianta reale della città.">
+<meta name="description" content="Verona romana in 3D da esplorare a piedi o in volo, sulla pianta reale della città.">
 <title>Verona Romana</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -35,6 +35,8 @@ button{font:inherit;color:inherit;}
 .btn{font:500 13.5px/1 var(--body);letter-spacing:.03em;background:var(--panel);color:var(--parch);border:1px solid var(--line);padding:9px 13px;border-radius:3px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
 .btn:hover{border-color:rgba(224,173,79,.55);}
 .btn.on{background:var(--minium);border-color:transparent;}
+.btn.sm{padding:6px 8px;font-size:12px;letter-spacing:.02em;}
+#hours{flex-wrap:wrap;justify-content:flex-end;max-width:210px;}
 .btn.primary{background:var(--minium);border-color:transparent;font-weight:700;}
 .btn.primary:hover{background:#c9573b;}
 .btn:focus-visible,#c:focus-visible,.go:focus-visible{outline:2px solid var(--ochre);outline-offset:2px;}
@@ -55,6 +57,15 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
 #info h2{font:400 21px/1.15 var(--disp);letter-spacing:.06em;text-transform:uppercase;margin:6px 0 2px;}
 #info .it{margin:0 0 8px;color:var(--ochre);font-weight:500;font-size:14px;}
 #info .txt{margin:0;color:var(--parch);opacity:.9;line-height:1.45;font-size:14.5px;}
+#tour{position:absolute;left:50%;bottom:calc(16px + var(--bot));transform:translateX(-50%);width:min(560px,calc(100% - 32px));padding:14px 18px 15px;z-index:3;}
+#tour h2{font:400 23px/1.12 var(--disp);letter-spacing:.06em;text-transform:uppercase;margin:6px 0 2px;}
+#tour #tourIt{margin:0 0 7px;color:var(--ochre);font-weight:500;font-size:14px;}
+#tour #tourTxt{margin:0 0 12px;line-height:1.45;font-size:14.5px;}
+#tour .row{display:flex;gap:8px;}
+body.tour #hint,body.tour #info{display:none;}
+body.photo #place,body.photo #compass,body.photo #nav,body.photo #info,body.photo #hint,body.photo #tour,body.photo #joy{display:none!important;}
+#toast{display:flex;align-items:center;gap:8px;position:absolute;left:50%;top:calc(70px + var(--top));transform:translateX(-50%);background:var(--minium);color:#fff;font:500 13px var(--body);padding:8px 14px;border-radius:3px;z-index:6;}
+#toast input{font:400 12px var(--mono);width:min(46vw,340px);border:0;border-radius:2px;padding:5px 7px;background:#fff;color:#17140f;}
 #hint{position:absolute;left:50%;bottom:calc(16px + var(--bot));transform:translateX(-50%);padding:8px 12px;font:400 12px/1.5 var(--mono);color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 420px);}
 #hint span{white-space:nowrap;}
 #joy{position:absolute;left:22px;bottom:calc(22px + var(--bot));width:128px;height:128px;border-radius:50%;border:1px solid var(--line);background:rgba(23,20,15,.35);touch-action:none;}
@@ -80,6 +91,14 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
 #mapSide h2{font:400 22px/1.1 var(--disp);letter-spacing:.08em;text-transform:uppercase;margin:4px 0 0;}
 #mapSide .help{color:var(--muted);font-size:13.5px;margin:0;line-height:1.4;}
 #placeList{list-style:none;margin:0;padding:0;overflow:auto;display:flex;flex-direction:column;gap:2px;min-height:0;flex:1;}
+#streetNames{border-top:1px solid var(--line);padding-top:8px;max-height:46vh;overflow:auto;}
+#streetNames summary{cursor:pointer;font:400 16px/1.2 var(--disp);letter-spacing:.06em;text-transform:uppercase;padding:4px 0;}
+#streetNames .note{color:var(--muted);font-size:12.5px;line-height:1.45;margin:6px 0 10px;}
+#streetTable{width:100%;border-collapse:collapse;}
+#streetTable th{text-align:left;font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ochre);padding:8px 0 4px;border-bottom:1px solid var(--line);}
+#streetTable td{padding:6px 8px 6px 0;vertical-align:top;border-bottom:1px solid rgba(241,231,208,.07);font-size:13px;}
+#streetTable td.la{font:400 14.5px/1.25 var(--disp);letter-spacing:.05em;white-space:nowrap;}
+#streetTable td.now{color:var(--muted);line-height:1.35;}
 .go{width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:9px 4px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 8px;}
 .go:hover{background:rgba(241,231,208,.05);}
 .go .la{font:400 15.5px/1.2 var(--disp);letter-spacing:.06em;text-transform:uppercase;}
@@ -124,6 +143,17 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
       <button class="btn" id="bMap" type="button">Mappa</button>
       <button class="btn" id="bFly" type="button">Volo</button>
     </div>
+    <div class="row">
+      <button class="btn" id="bTour" type="button">Visita guidata</button>
+      <button class="btn" id="bLink" type="button" title="Copia il link a questa veduta">Link</button>
+      <button class="btn" id="bSound" type="button" title="Suono d’ambiente">Suono</button>
+    </div>
+    <div class="row" id="hours">
+      <button class="btn sm" data-h="alba" type="button">Alba</button>
+      <button class="btn sm" data-h="giorno" type="button">Giorno</button>
+      <button class="btn sm" data-h="tramonto" type="button">Tramonto</button>
+      <button class="btn sm" data-h="notte" type="button">Notte</button>
+    </div>
   </aside>
 
   <div id="info" class="panel hide" aria-live="polite">
@@ -139,7 +169,22 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
     <span><kbd>⇧</kbd> corri</span>
     <span><kbd>F</kbd> volo</span>
     <span><kbd>M</kbd> mappa</span>
+    <span><kbd>T</kbd> visita · <kbd>P</kbd> foto</span>
+    <span><kbd>1</kbd>–<kbd>4</kbd> ora del giorno</span>
   </div>
+
+  <section id="tour" class="panel" hidden>
+    <p class="eyebrow"><span id="tourN">1 / 8</span> · Visita guidata</p>
+    <h2 id="tourLa"></h2>
+    <p id="tourIt"></p>
+    <p id="tourTxt"></p>
+    <div class="row">
+      <button class="btn" id="tourNext" type="button">Avanti</button>
+      <button class="btn" id="tourEnd" type="button">Esci dalla visita</button>
+    </div>
+  </section>
+
+  <div id="toast" hidden>Link copiato</div>
 
   <div id="joy" hidden><div id="joyKnob"></div></div>
 
@@ -151,6 +196,7 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
     <div class="actions">
       <button class="btn primary" id="bEnter" type="button">Entra da Porta Borsari</button>
       <button class="btn" id="bSoar" type="button">Sorvola la città</button>
+      <button class="btn" id="bTour2" type="button">Visita guidata</button>
     </div>
     <div class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o frecce · trascina per guardare · <kbd>⇧</kbd> corri · <kbd>F</kbd> volo · <kbd>M</kbd> mappa e luoghi</div>
     <p class="note">Ricostruzione procedurale e semplificata, ispirata alla veduta di partenza.</p>
@@ -165,6 +211,11 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
       <button class="btn" id="mapZoom" type="button">Zoom sul centro</button>
       <label class="toggle" for="modernToggle"><input type="checkbox" id="modernToggle" checked> <span>Vie di oggi in trasparenza <em>(OpenStreetMap)</em></span></label>
       <ul id="placeList"></ul>
+      <details id="streetNames">
+        <summary>Strade antiche e nomi di oggi</summary>
+        <p class="note">I nomi propri delle singole strade romane non ci sono arrivati: conosciamo i due assi principali e la strada consolare, la Via Postumia. La numerazione dei cardini e dei decumani è la convenzione usata dagli archeologi; le vie di oggi sono misurate sulla mappa attuale.</p>
+        <table id="streetTable"></table>
+      </details>
     </div>
   </section>
 
@@ -323,6 +374,7 @@ function bridgeAt(x,z,shrink=0){
 function groundH(x,z){
   const br=bridgeAt(x,z); if(br) return br.y;
   let h=terrainH(x,z);
+  const pf=platformH(x,z); if(pf!==null) h=Math.max(h,pf);
   const a=arenaH(x,z); if(a!==null) h=Math.max(h,a);
   const t=theatreH(x,z); if(t!==null) h=Math.max(h,t);
   return Math.max(h,-1);
@@ -333,20 +385,50 @@ const canvas=$('#c');
 const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,HQ?2:1.25));
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=T.PCFSoftShadowMap;
+renderer.outputEncoding=T.sRGBEncoding; renderer.toneMapping=T.ACESFilmicToneMapping; renderer.toneMappingExposure=0.95;
+const MC=h=>new T.Color(h).convertSRGBToLinear();
 const scene=new T.Scene();
-const HOR=new T.Color('#dcd8c6');
+const HOR=MC('#dcd8c6');
 scene.background=HOR; scene.fog=new T.Fog(HOR,320,3700);
 const camera=new T.PerspectiveCamera(64,1,.25,9500); camera.rotation.order='YXZ';
 const SUNDIR=new T.Vector3(-.55,.62,.45).normalize();
-scene.add(new T.HemisphereLight(0xe2ebf2,0x86714c,.68));
-const sun=new T.DirectionalLight(0xfff0d6,.98);
-sun.castShadow=true; sun.shadow.mapSize.set(HQ?4096:2048,HQ?4096:2048); sun.shadow.camera.near=1; sun.shadow.camera.far=2400; sun.shadow.bias=-.0004; sun.shadow.normalBias=.4;
+// sun position from a real bearing (0 = true north) and elevation, in the grid-aligned frame
+function sunFrom(bearing,elev){
+  const b=bearing*Math.PI/180, e=elev*Math.PI/180, ce=Math.cos(e);
+  const nx=.574, nz=-.819, ex=.819, ez=.574;
+  SUNDIR.set(ce*(nx*Math.cos(b)+ex*Math.sin(b)), Math.sin(e), ce*(nz*Math.cos(b)+ez*Math.sin(b))).normalize();
+}
+const HOURS={
+  alba:{la:'Alba',b:76,e:9,sun:'#ffbe82',si:1.9,hemi:.3,top:'#3d6ea6',hor:'#f2c194',fog:'#eec7a0',exp:1.0,water:'#4b6f7e',glow:[1,.72,.45],night:0,lamp:.25,far:2600},
+  giorno:{la:'Giorno',b:186,e:58,sun:'#fff0d6',si:2.35,hemi:.35,top:'#5b8cc6',hor:'#dcd8c6',fog:'#dcd8c6',exp:.95,water:'#40707c',glow:[1,.88,.66],night:0,lamp:0,far:3700},
+  tramonto:{la:'Tramonto',b:286,e:7,sun:'#ff9d55',si:2.0,hemi:.28,top:'#2e5f97',hor:'#f0a163',fog:'#e7b189',exp:1.0,water:'#54666f',glow:[1,.62,.34],night:0,lamp:.55,far:2400},
+  notte:{la:'Notte',b:130,e:42,sun:'#b9c9e8',si:.32,hemi:.1,top:'#07132a',hor:'#17253c',fog:'#121e33',exp:1.25,water:'#16283a',glow:[.8,.86,1],night:1,lamp:1,far:2000}
+};
+let HOUR='giorno';
+function setHour(k){
+  const h=HOURS[k]||HOURS.giorno; HOUR=k;
+  sunFrom(h.b,h.e);
+  sun.color.copy(MC(h.sun)); sun.intensity=h.si; hemiLight.intensity=h.hemi;
+  hemiLight.color.copy(MC(k==='notte'?'#8ea6c8':'#e2ebf2')); hemiLight.groundColor.copy(MC(k==='notte'?'#2a2f35':'#86714c'));
+  sky.material.uniforms.top.value.copy(MC(h.top)); sky.material.uniforms.hor.value.copy(MC(h.hor));
+  sky.material.uniforms.night.value=h.night; sky.material.uniforms.glow.value.setRGB(h.glow[0],h.glow[1],h.glow[2]);
+  scene.fog.color.copy(MC(h.fog)); scene.fog.far=h.far; scene.background=scene.fog.color;
+  renderer.toneMappingExposure=h.exp;
+  if(WATERMAT) WATERMAT.color.copy(MC(h.water));
+  const lamp=KINDS.dark[1]; lamp.emissive.copy(MC('#ffb060')); lamp.emissiveIntensity=h.lamp*1.6;
+  if(typeof buildEnvironment==='function'&&sky.material) buildEnvironment();
+  document.querySelectorAll('#hours .btn').forEach(b=>b.classList.toggle('on',b.dataset.h===k));
+  try{ localStorage.setItem('vr-hour',k); }catch(_){}
+}
+const hemiLight=new T.HemisphereLight(MC('#e2ebf2').getHex(),MC('#86714c').getHex(),.35); scene.add(hemiLight);
+const sun=new T.DirectionalLight(MC('#fff0d6').getHex(),2.35);
+sun.castShadow=true; sun.shadow.mapSize.set(HQ?4096:2048,HQ?4096:2048); sun.shadow.camera.near=1; sun.shadow.camera.far=2400; sun.shadow.bias=-.0004; sun.shadow.normalBias=.55;
 scene.add(sun); scene.add(sun.target);
 const sky=new T.Mesh(new T.SphereGeometry(8500,32,16),new T.ShaderMaterial({
   side:T.BackSide,depthWrite:false,fog:false,
-  uniforms:{top:{value:new T.Color('#5b8cc6')},hor:{value:HOR},sun:{value:SUNDIR}},
+  uniforms:{top:{value:MC('#5b8cc6')},hor:{value:HOR},sun:{value:SUNDIR},night:{value:0},glow:{value:new T.Color(1,.88,.66)}},
   vertexShader:'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:'uniform vec3 top;uniform vec3 hor;uniform vec3 sun;varying vec3 vP;void main(){vec3 d=normalize(vP);float h=d.y;vec3 c=mix(hor,top,pow(clamp(h,0.0,1.0),0.5));if(h<0.0)c=hor;float s=max(dot(d,sun),0.0);c+=vec3(1.0,.88,.66)*(pow(s,900.0)*2.0+pow(s,10.0)*.16);gl_FragColor=vec4(c,1.0);}'
+  fragmentShader:'uniform vec3 top;uniform vec3 hor;uniform vec3 sun;uniform float night;uniform vec3 glow;varying vec3 vP;float hsh(vec3 v){return fract(sin(dot(v,vec3(127.1,311.7,74.7)))*43758.5453);}void main(){vec3 d=normalize(vP);float h=d.y;vec3 c=mix(hor,top,pow(clamp(h,0.0,1.0),0.5));if(h<0.0)c=hor;float s=max(dot(d,sun),0.0);c+=glow*(pow(s,900.0)*2.0+pow(s,10.0)*.16);if(night>0.0&&h>0.0){vec3 g=floor(d*260.0);float st=hsh(g);c+=vec3(step(0.9988,st))*night*(0.6+0.8*hsh(g+7.0))*smoothstep(0.0,0.25,h);}gl_FragColor=vec4(c,1.0);\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n}'
 }));
 sky.renderOrder=-1; scene.add(sky);
 
@@ -407,6 +489,7 @@ function imgTex(N,fn){ const [c,g]=cv(N,N), im=g.createImageData(N,N), o=[0,0,0]
   for(let y=0;y<N;y++) for(let x=0;x<N;x++){ fn(x/N,y/N,o); const i=(y*N+x)*4; im.data[i]=clamp(o[0],0,1)*255; im.data[i+1]=clamp(o[1],0,1)*255; im.data[i+2]=clamp(o[2],0,1)*255; im.data[i+3]=255; }
   g.putImageData(im,0,0); return texOf(c); }
 const gray=(o,v)=>{ o[0]=o[1]=o[2]=v; };
+function srgbTex(t){ t.encoding=T.sRGBEncoding; return t; }
 const fr=x=>x-Math.floor(x);
 function stuccoTex(){ return imgTex(256,(u,v,o)=>{ let k=.5+(tfbm(u*6,v*6,6)-.5)*.42+(tfbm(u*40,v*40,40,3)-.5)*.2+(tnoise(u*28,v*2.5,28)-.5)*.14+(hash2(u*997,v*991)-.5)*.05; const w=.5+(tfbm(u*4+9,v*4,4)-.5); o[0]=k*(1+.03*w); o[1]=k; o[2]=k*(1-.04*w); }); }
 function ashlarTex(){ return imgTex(256,(u,v,o)=>{ const rows=4, row=Math.floor(v*rows), fv=fr(v*rows), off=(row%2)*.5, cu=(u*2+off), col=Math.floor(cu), fu=fr(cu);
@@ -427,11 +510,37 @@ function tileTex(){ return imgTex(128,(u,v,o)=>{ const cu=u*5, col=Math.floor(cu
   let k; if(fu<.34){ const t=fu/.34; k=.34+.42*Math.pow(Math.sin(t*Math.PI),.7); } else { const t=(fu-.34)/.66; k=.46+.06*t; if(fu<.4) k*=.62; }
   k*=1-.35*smooth(.78,1,fv); k*=1+(hash2(col+row*11,row*3)-.5)*.22; k+=(tfbm(u*8,v*8,8,3)-.5)*.1; gray(o,k); }); }
 function woodTex(){ return imgTex(128,(u,v,o)=>{ const pl=fr(v*5); let k=.5+(tfbm(u*2,v*40,2,4)-.5)*.5+(hash2(Math.floor(v*5),3)-.5)*.14; if(pl<.05) k*=.55; gray(o,k); }); }
+function frescoTex(){ // a wall in the Pompeian manner: black dado, red panels, pale cornice (4 m tall)
+  return imgTex(256,(u,v,o)=>{
+    const y=1-v, n=(tfbm(u*14,v*14,14,4)-.5)*.1;
+    let c;
+    if(y<.22) c=[.13+n,.09+n,.09+n];
+    else if(y>.8) c=[.86+n,.82+n,.74+n];
+    else {
+      const pu=fr(u*3), edge=pu<.045||pu>.955||y<.27||y>.75;
+      const band=Math.abs(pu-.5)<.018;
+      c=edge?[.78+n,.63+n,.28+n]:(band?[.72+n,.58+n,.26+n]:[.62+n,.16+n,.12+n]);
+      if(!edge&&Math.abs(pu-.5)<.14&&Math.abs(y-.52)<.12) c=[.76+n,.66+n,.48+n];
+    }
+    o[0]=c[0]; o[1]=c[1]; o[2]=c[2];
+  });
+}
+function mosaicTex(){ // black and white tesserae with a meander border
+  return imgTex(256,(u,v,o)=>{
+    const t=1/28, i=Math.floor(u/t), j=Math.floor(v/t), fu=fr(u/t), fv=fr(v/t);
+    const edge=i<3||i>24||j<3||j>24;
+    let w=((i+j)%2===0)?.82:.26;
+    if(edge) w=((i%3===0)||(j%3===0))?.1:.84;
+    if(fu<.08||fv<.08) w*=.7;
+    const n=(hash2(i*7,j*5)-.5)*.12;
+    o[0]=w+n+.02; o[1]=w+n; o[2]=w+n-.03;
+  });
+}
 function grassTex(){ return imgTex(256,(u,v,o)=>{ const k=.5+(tfbm(u*8,v*8,8)-.5)*.5+(tfbm(u*48,v*48,48,2)-.5)*.35+(hash2(u*1009,v*1013)-.5)*.16; o[0]=k*(1+(tnoise(u*12,v*12,12)-.5)*.2); o[1]=k; o[2]=k*.95; }); }
-const TEX={pave:pavingTex(), slab:slabTex(), arena:arenaTex(), water:waterNormal(), stucco:stuccoTex(), ashlar:ashlarTex(), marble:marbleTex(), brick:brickTex(), tiles:tileTex(), wood:woodTex(), grass:grassTex()};
+const TEX={pave:srgbTex(pavingTex()), slab:srgbTex(slabTex()), arena:srgbTex(arenaTex()), water:waterNormal(), stucco:stuccoTex(), ashlar:ashlarTex(), marble:marbleTex(), brick:brickTex(), tiles:tileTex(), wood:woodTex(), grass:grassTex(), fresco:srgbTex(frescoTex()), mosaic:srgbTex(mosaicTex())};
 
 /* ---------------- instancing ---------------- */
-const lam=(o={})=>new T.MeshLambertMaterial(Object.assign({color:0xffffff},o));
+const lam=(o={})=>new T.MeshStandardMaterial(Object.assign({color:0xffffff,roughness:.94,metalness:0,envMapIntensity:.62},o));
 function gableGeo(){
   const A=[-.5,0,-.5],B=[-.5,0,.5],C=[0,1,.5],D=[0,1,-.5],E=[.5,0,.5],F=[.5,0,-.5];
   const tris=[A,B,C, A,C,D, E,F,D, E,D,C, B,E,C, F,A,D];
@@ -447,21 +556,22 @@ const G={
   dome:new T.SphereGeometry(1,20,8,0,Math.PI*2,0,Math.PI/2),
 };
 const DMODES={
-  plaster:`vec3 dt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dt,.6);
-    if(vDUp<.5){ float pl=step(vDH,1.15); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.52,.24,.16)*mix(vec3(1.0),dt,.7),pl*.88);
+  plaster:`float dLum=texture2D(dMap,vDUV/dScale).g; dRoughVar=dLum; vec3 dDt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dDt,.3);
+    if(vDUp<.5){ float pl=step(vDH,1.15); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.52,.24,.16)*mix(vec3(1.0),dDt,.7),pl*.88);
       diffuseColor.rgb*=1.0-.12*step(1.15,vDH)*step(vDH,1.3);
       diffuseColor.rgb*=mix(.6,1.0,smoothstep(0.0,2.2,vDH)); diffuseColor.rgb*=1.0-.25*smoothstep(1.3,0.0,vDTop); }`,
-  stone:`vec3 dt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dt,.8); if(vDUp<.5) diffuseColor.rgb*=mix(.66,1.0,smoothstep(0.0,1.8,vDH));`,
-  marble:`vec3 dt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dt,.55); if(vDUp<.5) diffuseColor.rgb*=mix(.72,1.0,smoothstep(0.0,1.6,vDH));`,
-  brick:`vec3 dt=texture2D(dMap,vDUV/dScale).rgb; diffuseColor.rgb=diffuseColor.rgb/vec3(.616,.357,.263)*dt*1.02; if(vDUp<.5) diffuseColor.rgb*=mix(.62,1.0,smoothstep(0.0,2.6,vDH));`,
-  roof:`vec3 dt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dt,.9); diffuseColor.rgb*=mix(.72,1.0,smoothstep(0.0,.25,vDH));`,
-  column:`float fl=.8+.2*pow(abs(sin(vDAng*10.0)),.6); vec3 dt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=fl*mix(vec3(1.0),dt,.35)*mix(.7,1.0,smoothstep(0.0,1.5,vDH));`,
-  flat:`vec3 dt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dt,.7);`
+  stone:`float dLum=texture2D(dMap,vDUV/dScale).g; dRoughVar=dLum; vec3 dDt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dDt,.8); if(vDUp<.5) diffuseColor.rgb*=mix(.66,1.0,smoothstep(0.0,1.8,vDH));`,
+  marble:`float dLum=texture2D(dMap,vDUV/dScale).g; dRoughVar=dLum; vec3 dDt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dDt,.55); if(vDUp<.5) diffuseColor.rgb*=mix(.72,1.0,smoothstep(0.0,1.6,vDH));`,
+  brick:`float dLum=texture2D(dMap,vDUV/dScale).g; dRoughVar=dLum; vec3 dDt=texture2D(dMap,vDUV/dScale).rgb; diffuseColor.rgb=diffuseColor.rgb/vec3(.616,.357,.263)*dDt*1.02; if(vDUp<.5) diffuseColor.rgb*=mix(.62,1.0,smoothstep(0.0,2.6,vDH));`,
+  roof:`float dLum=texture2D(dMap,vDUV/dScale).g; dRoughVar=dLum; vec3 dDt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dDt,.9); diffuseColor.rgb*=mix(.72,1.0,smoothstep(0.0,.25,vDH));`,
+  column:`float dLum=texture2D(dMap,vDUV/dScale).g; dRoughVar=dLum; float fl=.8+.2*pow(abs(sin(vDAng*10.0)),.6); vec3 dDt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=fl*mix(vec3(1.0),dDt,.35)*mix(.7,1.0,smoothstep(0.0,1.5,vDH));`,
+  flat:`vec3 dDt=texture2D(dMap,vDUV/dScale).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),dDt,.7); dRoughVar=dDt.g;`,
+  paint:`vec3 dDt=texture2D(dMap,vec2(vDUV.x,vDUV.y)/dScale).rgb; diffuseColor.rgb=dDt*(.94+.12*dDt.g); dRoughVar=.35; if(vDUp<.5) diffuseColor.rgb*=mix(.7,1.0,smoothstep(0.0,1.4,vDH));`
 };
-function detailMat(tex,scale,mode,extra){
-  const m=lam(extra);
+function detailMat(tex,scale,mode,extra,bump=2.2,rough=.92){
+  const m=lam(Object.assign({roughness:rough},extra));
   m.onBeforeCompile=sh=>{
-    sh.uniforms.dMap={value:tex}; sh.uniforms.dScale={value:scale};
+    sh.uniforms.dMap={value:tex}; sh.uniforms.dScale={value:scale}; sh.uniforms.dBump={value:bump};
     const vars='varying vec2 vDUV;varying float vDH;varying float vDTop;varying float vDUp;varying float vDAng;\n';
     sh.vertexShader=vars+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
       #ifdef USE_INSTANCING
@@ -472,30 +582,80 @@ function detailMat(tex,scale,mode,extra){
       vec3 dlp=position*dsc; vec3 dan=abs(normal);
       vDUV=(dan.x>.5?vec2(dlp.z,dlp.y):(dan.z>.5?vec2(dlp.x,dlp.y):vec2(dlp.x,dlp.z)))+doff;
       vDH=dlp.y; vDTop=dsc.y*(1.0-position.y); vDUp=normal.y; vDAng=atan(position.z,position.x);`);
-    sh.fragmentShader='uniform sampler2D dMap;uniform float dScale;\n'+vars+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n'+DMODES[mode]);
+    sh.fragmentShader='uniform sampler2D dMap;uniform float dScale;uniform float dBump;\n'+vars+sh.fragmentShader
+      .replace('#include <color_fragment>','#include <color_fragment>\nfloat dRoughVar=.5;\n'+DMODES[mode])
+      .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=clamp(roughnessFactor*(1.35-.7*dRoughVar),.04,1.0);')
+      .replace('#include <normal_fragment_begin>',`#include <normal_fragment_begin>
+        { float dBh=texture2D(dMap,vDUV/dScale).g;
+          vec3 dSp=-vViewPosition; vec3 dSx=dFdx(dSp); vec3 dSy=dFdy(dSp); vec3 dVn=normal;
+          vec3 dCa=cross(dSy,dVn); vec3 dCb=cross(dVn,dSx); float dDet=dot(dSx,dCa);
+          vec2 dHxy=vec2(dFdx(dBh),dFdy(dBh))*dBump;
+          vec3 dGrad=sign(dDet)*(dHxy.x*dCa+dHxy.y*dCb);
+          normal=normalize(abs(dDet)*dVn-dGrad); }`);
   };
   m.customProgramCacheKey=()=>'d-'+mode;
   return m;
 }
-const MAT={plaster:detailMat(TEX.stucco,3.2,'plaster'), roof:detailMat(TEX.tiles,1.15,'roof'), stone:detailMat(TEX.ashlar,2.6,'stone'), brick:detailMat(TEX.brick,2.4,'brick'),
-  marble:detailMat(TEX.marble,3.4,'marble'), column:detailMat(TEX.marble,3.4,'column'), wood:detailMat(TEX.wood,1.6,'flat'), garden:detailMat(TEX.grass,2.2,'flat')};
+const WINDMATS=[];
+function windMat(m,amp,hi){
+  m.onBeforeCompile=sh=>{
+    sh.uniforms.wTime={value:0}; sh.uniforms.wAmp={value:amp};
+    sh.vertexShader='uniform float wTime;uniform float wAmp;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+      #ifdef USE_INSTANCING
+      vec3 wOr=instanceMatrix[3].xyz;
+      #else
+      vec3 wOr=vec3(0.0);
+      #endif
+      float wH=`+(hi?'max(transformed.y,0.0)':'max(transformed.y+0.5,0.0)')+`;
+      float wS=sin(wTime*1.6+wOr.x*.21+wOr.z*.17)+0.45*sin(wTime*3.1+wOr.z*.33);
+      transformed.x+=wS*wAmp*wH; transformed.z+=0.7*wS*wAmp*wH;`);
+    WINDMATS.push(sh);
+  };
+  m.customProgramCacheKey=()=>'wind-'+amp+'-'+(hi?1:0);
+  return m;
+}
+const MAT={plaster:detailMat(TEX.stucco,5.5,'plaster',{},.12,.95), roof:detailMat(TEX.tiles,1.15,'roof',{},.9,.86), stone:detailMat(TEX.ashlar,2.6,'stone',{},.5,.9),
+  brick:detailMat(TEX.brick,2.4,'brick',{},.45,.92), marble:detailMat(TEX.marble,3.4,'marble',{},.25,.5), column:detailMat(TEX.marble,3.4,'column',{},.2,.5),
+  wood:detailMat(TEX.wood,1.6,'flat',{},.3,.88), fresco:detailMat(TEX.fresco,4,'paint',{},.1,.6), garden:detailMat(TEX.grass,2.2,'flat',{},.25,.97)};
 G.amph=new T.LatheGeometry([[0,0],[.05,.03],[.1,.14],[.17,.36],[.2,.55],[.18,.7],[.09,.8],[.06,.94],[.075,1]].map(p=>new T.Vector2(p[0],p[1])),9);
+G.wheel=new T.CylinderGeometry(1,1,1,14).rotateZ(Math.PI/2);
+G.foliage=(()=>{ // crossed cards that read as a leafy mass
+  const pos=[],uv=[],nor=[],idx=[];
+  const quad=(ax,ay,az,bx,by,bz,nx,ny,nz)=>{ const b0=pos.length/3;
+    pos.push(-ax,-ay,-az, ax,-ay,az, ax,by,az, -ax,by,-az);
+    uv.push(0,0,1,0,1,1,0,1); for(let k=0;k<4;k++) nor.push(nx,ny,nz); idx.push(b0,b0+1,b0+2,b0,b0+2,b0+3); };
+  for(let q=0;q<3;q++){ const a=q*Math.PI/3, c=Math.cos(a), sn=Math.sin(a); quad(c,1,sn,0,0,0,0,1,0); }
+  const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new T.Float32BufferAttribute(uv,2)); g.setAttribute('normal',new T.Float32BufferAttribute(nor,3)); g.setIndex(idx); return g; })();
+TEX.leaves=(()=>{ const [c,g]=cv(128,128);
+  for(let k=0;k<90;k++){ const x=hash2(k,3.1)*128, y=hash2(k,7.7)*128, r=5+hash2(k,1.3)*9, a=hash2(k,5.5)*6.3;
+    const d=Math.hypot(x-64,y-64)/64; if(d>1.02) continue;
+    const v=170+Math.floor(hash2(k,9.9)*85); g.save(); g.translate(x,y); g.rotate(a);
+    g.fillStyle=`rgba(${v},${v},${v},${.82+hash2(k,2.2)*.18})`; g.beginPath(); g.ellipse(0,0,r,r*.55,0,0,7); g.fill(); g.restore(); }
+  const t=new T.CanvasTexture(c); t.encoding=T.sRGBEncoding; return t; })();
 G.tuft=(()=>{ const pos=[], uv=[], nor=[], idx=[];
   for(let q=0;q<3;q++){ const a=q*Math.PI/3, c=Math.cos(a)*.5, sn=Math.sin(a)*.5, b=pos.length/3;
     pos.push(-c,0,-sn, c,0,sn, c,1,sn, -c,1,-sn); uv.push(0,0,1,0,1,1,0,1); for(let k=0;k<4;k++) nor.push(0,1,0); idx.push(b,b+1,b+2,b,b+2,b+3); }
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new T.Float32BufferAttribute(uv,2)); g.setAttribute('normal',new T.Float32BufferAttribute(nor,3)); g.setIndex(idx); return g; })();
-TEX.blades=(()=>{ const [c,g]=cv(64,64); g.lineCap='round';
+TEX.blades=(()=>{ const [c,g]=cv(64,64);  g.lineCap='round';
   for(let k=0;k<16;k++){ const x=6+hash2(k,2)*52, h=26+hash2(k,5)*36, lean=(hash2(k,8)-.5)*22; const gr=g.createLinearGradient(0,64,0,64-h); gr.addColorStop(0,'#b4b4a6'); gr.addColorStop(1,'#ffffff');
     g.strokeStyle=gr; g.lineWidth=2.6-hash2(k,3); g.beginPath(); g.moveTo(x,64); g.quadraticCurveTo(x+lean*.3,64-h*.6,x+lean,64-h); g.stroke(); }
-  const t=new T.CanvasTexture(c); return t; })();
+  const t=new T.CanvasTexture(c); t.encoding=T.sRGBEncoding; return t; })();
 const KINDS={
   plaster:[G.box,MAT.plaster,1], roof:[G.roof,MAT.roof,1], stone:[G.box,MAT.stone,1], brick:[G.box,MAT.brick,1], marble:[G.box,MAT.marble,1], pediment:[G.roof,MAT.marble,1],
-  amph:[G.amph,lam(),1], tuft:[G.tuft,lam({map:TEX.blades,alphaTest:.45,side:T.DoubleSide}),0], flower:[G.ball,lam(),0],
-  dark:[G.box,lam(),0], column:[G.cyl,MAT.column,1], tower:[G.cyl16,MAT.stone,1], trunk:[G.cyl,lam(),1], leaf:[G.ball,lam(),1],
-  cone:[G.cone,lam(),1], dome:[G.dome,lam(),1], garden:[G.box,MAT.garden,0], pool:[G.box,new T.MeshPhongMaterial({color:0xffffff,shininess:90,specular:0x88aaaa}),0],
-  cloth:[G.box,lam(),1], wood:[G.box,MAT.wood,1]
+  flame:[G.cone,new T.MeshBasicMaterial({color:MC('#ffb347')}),0], wheel:[G.wheel,lam(),1], amph:[G.amph,lam(),1], tuft:[G.tuft,windMat(lam({map:TEX.blades,alphaTest:.45,side:T.DoubleSide,roughness:.95}),.05,true),0], flower:[G.ball,lam(),0],
+  dark:[G.box,lam(),0], column:[G.cyl,MAT.column,1], tower:[G.cyl16,MAT.stone,1], trunk:[G.cyl,lam(),1], leaf:[G.foliage,windMat(lam({map:TEX.leaves,alphaTest:.42,side:T.DoubleSide,roughness:.92}),.035,false),1],
+  cone:[G.cone,lam(),1], dome:[G.dome,lam(),1], garden:[G.box,MAT.garden,0], pool:[G.box,new T.MeshStandardMaterial({color:0xffffff,roughness:.09,metalness:0}),0],
+  fresco:[G.box,MAT.fresco,1],
+  cloth:[G.box,windMat(lam({roughness:.9}),.03,false),1], wood:[G.box,MAT.wood,1]
 };
-const INST={}, FOOT=[];
+const INST={}, FOOT=[], TORCHES=[], FOUNTAINS=[];
+function torch(x,z,y=.4){
+  put('wood',x,y,z,.16,2.5,.16,0,MC('#5d4630'));
+  put('stone',x,y+2.5,z,.34,.28,.34,0,MC('#b9ad93'));
+  put('flame',x,y+2.78,z,.3,.55,.3,rnd()*6,MC('#ff8a2a'));
+  TORCHES.push([x,y+2.9,z]);
+}
 const _q=new T.Quaternion(), _e=new T.Euler(), _p=new T.Vector3(), _sc=new T.Vector3();
 let BY=0;
 function put(kind,x,y,z,sx,sy,sz,ry,col){
@@ -504,16 +664,17 @@ function put(kind,x,y,z,sx,sy,sz,ry,col){
   if((kind==='roof'||kind==='stone'||kind==='marble'||kind==='brick'||(kind==='plaster'&&sy>3))&&sx>2.2&&sz>2.2) FOOT.push([kind,x,z,sx,sz,ry||0]);
 }
 const WHITE=new T.Color(1,1,1);
+let FLAMEMESH=null;
 function flushInstances(){
   for(const k in INST){
     const arr=INST[k], def=KINDS[k];
     const m=new T.InstancedMesh(def[0],def[1],arr.length);
     arr.forEach((a,i)=>{ m.setMatrixAt(i,a[0]); m.setColorAt(i,a[1]||WHITE); });
     m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true;
-    m.castShadow=!!def[2]; m.receiveShadow=true; m.frustumCulled=false; scene.add(m);
+    m.castShadow=!!def[2]; m.receiveShadow=true; m.frustumCulled=false; scene.add(m); if(k==='flame') FLAMEMESH=m;
   }
 }
-function jit(hex,v=.06){ const c=new T.Color(hex); const k=1+(rnd()-.5)*2*v; c.r*=k*(1+(rnd()-.5)*v*.4); c.g*=k; c.b*=k*(1+(rnd()-.5)*v*.4); return c; }
+function jit(hex,v=.06){ const c=new T.Color(hex).convertSRGBToLinear(); const k=1+(rnd()-.5)*2*v; c.r*=k*(1+(rnd()-.5)*v*.4); c.g*=k; c.b*=k*(1+(rnd()-.5)*v*.4); return c; }
 const PAL={
   plaster:['#e9dcc3','#e3d0ae','#efe5d0','#dac6a3','#e8d4ba','#d6bf9c','#efe0c4','#e2c9a4'],
   roof:['#b1523a','#a64a33','#bb5c3e','#9c472f','#c26945','#ad5a3d'],
@@ -531,6 +692,17 @@ function gridAdd(o,x0,z0,x1,z1){
 function colBox(x0,z0,x1,z1){ const o=[Math.min(x0,x1),Math.min(z0,z1),Math.max(x0,x1),Math.max(z0,z1)]; gridAdd(o,o[0],o[1],o[2],o[3]); }
 function colCirc(x,z,r){ gridAdd({c:1,x,z,r},x-r,z-r,x+r,z+r); }
 function colSeg(ax,az,bx,bz,r){ SEGS.push([ax,az,bx,bz,r]); }
+const PLATFORMS=[];
+function platformH(x,z){
+  let h=null;
+  for(const p of PLATFORMS){
+    if(x<p.x0||x>p.x1||z<p.z0||z>p.z1) continue;
+    let y=p.y;
+    if(p.ramp) y=p.y*clamp((p.rz1-z)/(p.rz1-p.rz0),0,1);
+    if(h===null||y>h) h=y;
+  }
+  return h;
+}
 const PR=.38;
 function blocked(x,z){
   if(Math.abs(x)>1180||Math.abs(z)>1180) return true;
@@ -553,6 +725,8 @@ function box(kind,x0,z0,x1,z1,y,h,col,collide){ put(kind,(x0+x1)/2,y,(z0+z1)/2,x
 function roofOver(x0,z0,x1,z1,y,col){
   const W=x1-x0, D=z1-z0;
   const rc=col.clone().multiplyScalar(.8), cx=(x0+x1)/2, cz=(z0+z1)/2;
+  const band=jit('#d9cdb4',.04);
+  if(y>3){ put('stone',cx,y-.5,cz,W+.6,.5,D+.6,0,band); put('stone',cx,0,cz,W+.34,.55,D+.34,0,band); }
   if(W>=D){ const rh=Math.min(D*.3,5.5); put('roof',cx,y,cz,D+.9,rh,W+.9,Math.PI/2,col); put('roof',cx,y+rh-.18,cz,.55,.36,W+1,Math.PI/2,rc); }
   else { const rh=Math.min(W*.3,5.5); put('roof',cx,y,cz,W+.9,rh,D+.9,0,col); put('roof',cx,y+rh-.18,cz,.55,.36,D+1,0,rc); }
 }
@@ -562,11 +736,23 @@ function facade(x0,z0,x1,z1,side,h,opt){
   if(side==='n'){ax=x0;az=z0;bx=x1;bz=z0;ox=0;oz=-1;} else if(side==='s'){ax=x0;az=z1;bx=x1;bz=z1;ox=0;oz=1;}
   else if(side==='w'){ax=x0;az=z0;bx=x0;bz=z1;ox=-1;oz=0;} else {ax=x1;az=z0;bx=x1;bz=z1;ox=1;oz=0;}
   const L=Math.hypot(bx-ax,bz-az), along=side==='n'||side==='s';
-  const put2=(p,y,w,hh,win)=>{ const t=p/L, cx=ax+(bx-ax)*t, cz=az+(bz-az)*t;
-    const B=(k,off,yy,ww,h2,d,c)=>{ const x=cx+ox*off, z=cz+oz*off; along?put(k,x,yy,z,ww,h2,d,0,c):put(k,x,yy,z,d,h2,ww,0,c); };
+  const P=(t)=>[ax+(bx-ax)*t, az+(bz-az)*t];
+  const put2=(p,y,w,hh,win)=>{ const [cx,cz]=P(p/L);
+    const B=(k,off,yy,ww,h2,d,c,slide=0)=>{ const q=P((p+slide)/L), x=q[0]+ox*off, z=q[1]+oz*off; along?put(k,x,yy,z,ww,h2,d,0,c):put(k,x,yy,z,d,h2,ww,0,c); };
     B('dark',.06,y,w,hh,.25,DARK);
-    if(win){ B('stone',.03,y-.15,w+.36,hh+.32,.2,FRAME); B('stone',.14,y-.22,w+.55,.12,.42,FRAME); }
-    else { B('wood',.12,y+hh,w+.6,.34,.36,BEAM); B('stone',.1,y,w+.3,.12,.3,FRAME); }
+    if(win){
+      B('stone',.03,y-.15,w+.36,hh+.32,.2,FRAME); B('stone',.14,y-.22,w+.55,.12,.42,FRAME);
+      if(HQ&&rnd()<.55){ const sc=jit(pick(['#6d5236','#7a5a3a','#5c6b52','#8a6a45']),.08);
+        for(const sd of [-1,1]) B('wood',.2,y-.05,w*.55,hh+.12,.1,sc,sd*(w*.78)); }
+    } else {
+      B('wood',.12,y+hh,w+.6,.34,.36,BEAM); B('stone',.1,y,w+.3,.12,.3,FRAME);
+      B('stone',.35,0,w+.5,.14,.6,jit('#c9bda2',.04));
+      if(rnd()<.3){ const sg=jit(pick(PAL.cloth),.06); B('wood',.42,hh+.5,1.9,.55,.1,sg); }
+      if(rnd()<.28){ const aw=jit(pick(PAL.cloth),.05);
+        B('cloth',1.1,hh+.35,w+1.2,.07,1.9,aw);
+        for(const sd of [-1,1]) B('wood',1.95,0,.09,hh+.35,.09,BEAM,sd*(w*.55)); }
+      if(rnd()<.25){ B('stone',.85,0,w*.8,1.1,.75,jit('#c3b596',.05)); }
+    }
   };
   if(opt.shops){ for(let p=3;p<L-2.5;p+=4.6){ if(opt.skipMid&&Math.abs(p-L/2)<3) continue; put2(p,0,2.5,2.9,false);
     if(rnd()<.35){ const n=2+Math.floor(rnd()*3); for(let k=0;k<n;k++){ const t=(p+rr(-1.4,1.4))/L, off=rr(.5,1.2), sc=rr(.9,1.15); put('amph',ax+(bx-ax)*t+ox*off,.42,az+(bz-az)*t+oz*off,sc,sc,sc,rnd()*6,jit('#b36c47',.08)); } } } }
@@ -576,7 +762,7 @@ function facade(x0,z0,x1,z1,side,h,opt){
     }
   }
 }
-const DARK=new T.Color(PAL.dark), FRAME=new T.Color('#d9cdb3'), BEAM=new T.Color('#6e4f33');
+const DARK=MC(PAL.dark), FRAME=MC('#d9cdb3'), BEAM=MC('#6e4f33');
 function colPut(x,y,z,r,h,col){ put('marble',x,y,z,r*2.7,r*.8,r*2.7,0,col); put('column',x,y+r*.8,z,r,h-r*1.9,r,0,col); put('marble',x,y+h-r*1.1,z,r*2.9,r*1.1,r*2.9,0,col); }
 function colonnade(ax,az,bx,bz,step,h,r,col,y=0){
   const L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.round(L/step));
@@ -601,6 +787,15 @@ function tree(type,x,z,s=1,y){
 /* --- domus & insulae --- */
 function solidBlock(x0,z0,x1,z1,h,sides,shops,wc,rc){
   box('plaster',x0,z0,x1,z1,0,h,wc,true); roofOver(x0,z0,x1,z1,h,rc);
+  if(h>10.5&&HQ){   // outside staircase to the upper flats, as in Ostia
+    const st=jit('#cbbfa4',.04), sd=['n','s','w','e'].filter(k=>sides[k]&&!(shops||{})[k]);
+    if(sd.length){ const k=pick(sd), n=13, rise=(h-3.2)/n;
+      for(let i=0;i<n;i++){ const y=i*rise, d=.34+i*0;
+        if(k==='n'||k==='s'){ const z=(k==='n'?z0-.55:z1+.55), x=x0+3+i*.9; put('stone',x,0,z,.95,y+rise,1.25,0,st); }
+        else { const x=(k==='w'?x0-.55:x1+.55), z=z0+3+i*.9; put('stone',x,0,z,1.25,y+rise,.95,0,st); } }
+      if(k==='n'||k==='s'){ const z=(k==='n'?z0-.55:z1+.55); put('wood',x0+3+n*.9+1.2,h-3.2,z,3,.2,1.3,0,BEAM); }
+      else { const x=(k==='w'?x0-.55:x1+.55); put('wood',x,h-3.2,z0+3+n*.9+1.2,1.3,.2,3,0,BEAM); } }
+  }
   for(const s of ['n','s','w','e']) if(sides[s]) facade(x0,z0,x1,z1,s,h,{shops:shops[s]||h>10});
 }
 function domus(x0,z0,x1,z1,sides,shops){
@@ -612,8 +807,13 @@ function domus(x0,z0,x1,z1,sides,shops){
   const door=cand.length?pick(cand):(['n','s','w','e'].filter(s=>sides[s])[0]||'s');
   const strip=(a0,b0,a1,b1,axis,hasDoor)=>{
     if(hasDoor){
-      if(axis==='x'){ const mid=(a0+a1)/2; box('plaster',a0,b0,mid-1.6,b1,0,h,wc,true); box('plaster',mid+1.6,b0,a1,b1,0,h,wc,true); put('dark',mid,h-1.1,(b0+b1)/2,3.3,1.1,b1-b0-.1,0,wc); }
-      else { const mid=(b0+b1)/2; box('plaster',a0,b0,a1,mid-1.6,0,h,wc,true); box('plaster',a0,mid+1.6,a1,b1,0,h,wc,true); put('dark',(a0+a1)/2,h-1.1,mid,a1-a0-.1,1.1,3.3,0,wc); }
+      const dc=jit(pick(['#6a4d31','#7b5a38','#5d472f']),.07), th=jit('#c9bda2',.04);
+      if(axis==='x'){ const mid=(a0+a1)/2, zc=(b0+b1)/2; box('plaster',a0,b0,mid-1.6,b1,0,h,wc,true); box('plaster',mid+1.6,b0,a1,b1,0,h,wc,true); put('dark',mid,h-1.1,zc,3.3,1.1,b1-b0-.1,0,wc);
+        put('stone',mid,0,b0<z0+1?b0+.3:b1-.3,3.6,.16,.9,0,th);
+        for(const sd of [-1,1]) put('wood',mid+sd*1.42,0,zc,.16,h-1.2,1.5,0,dc); }
+      else { const mid=(b0+b1)/2, xc=(a0+a1)/2; box('plaster',a0,b0,a1,mid-1.6,0,h,wc,true); box('plaster',a0,mid+1.6,a1,b1,0,h,wc,true); put('dark',xc,h-1.1,mid,a1-a0-.1,1.1,3.3,0,wc);
+        put('stone',a0<x0+1?a0+.3:a1-.3,0,mid,.9,.16,3.6,0,th);
+        for(const sd of [-1,1]) put('wood',xc,0,mid+sd*1.42,1.5,h-1.2,.16,0,dc); }
     } else box('plaster',a0,b0,a1,b1,0,h,wc,true);
     roofOver(a0,b0,a1,b1,h,rc);
   };
@@ -629,11 +829,15 @@ function domus(x0,z0,x1,z1,sides,shops){
     colonnade(cx0+i,cz1-i,cx1-i,cz1-i,3.2,3.6,.22,jit(PAL.marble,.03));
     colonnade(cx0+i,cz0+i+3.2,cx0+i,cz1-i-3.2,3.2,3.6,.22,jit(PAL.marble,.03));
     colonnade(cx1-i,cz0+i+3.2,cx1-i,cz1-i-3.2,3.2,3.6,.22,jit(PAL.marble,.03));
-    put('stone',cx,0,cz,6.4,.75,4.4,0,jit(PAL.stone,.03)); put('pool',cx,.1,cz,5.6,.7,3.6,0,new T.Color(PAL.pool));
+    put('stone',cx,0,cz,6.4,.75,4.4,0,jit(PAL.stone,.03)); put('pool',cx,.1,cz,5.6,.7,3.6,0,MC(PAL.pool));
+    if(rnd()<.6){ const px=lerp(cx0+4,cx1-4,rnd()<.5?.25:.75), pz=lerp(cz0+4,cz1-4,rnd()<.5?.25:.75), vc=jit('#4c6b33',.1);
+      for(const a of [-1,1]) for(const b of [-1,1]) put('column',px+a*1.6,0,pz+b*1.6,.12,2.6,.12,0,BEAM);
+      for(const a of [-1,1]){ put('wood',px,2.6,pz+a*1.6,3.6,.14,.14,0,BEAM); put('wood',px+a*1.6,2.6,pz,.14,.14,3.6,0,BEAM); }
+      for(let k=0;k<7;k++) put('leaf',px+rr(-1.7,1.7),2.85,pz+rr(-1.7,1.7),rr(.7,1.2),.4,rr(.7,1.2),rnd()*6,vc); }
     const n=2+Math.floor(rnd()*3);
     for(let k=0;k<n;k++){ const tx=lerp(cx0+5,cx1-5,rnd()), tz=lerp(cz0+5,cz1-5,rnd()); if(Math.abs(tx-cx)<5&&Math.abs(tz-cz)<4) continue; tree(rnd()<.5?'cypress':'oak',tx,tz,.7,.5); }
   } else {
-    put('stone',cx,0,cz,4.2,.62,3.2,0,jit(PAL.stone,.03)); put('pool',cx,.1,cz,3.4,.58,2.4,0,new T.Color(PAL.pool));
+    put('stone',cx,0,cz,4.2,.62,3.2,0,jit(PAL.stone,.03)); put('pool',cx,.1,cz,3.4,.58,2.4,0,MC(PAL.pool));
     if(rnd()<.5 && cx1-cx0>9) tree(rnd()<.5?'cypress':'oak',cx+(rnd()<.5?-1:1)*(cx1-cx0)*.3,cz+(cz1-cz0)*.25,.55,.4);
   }
 }
@@ -646,13 +850,35 @@ function lotBuild(x0,z0,x1,z1,sides,mains){
   if(mains.e){ portico(x1-.7,z0+1.2,x1-.7,z1-1.2,-1,0,4,4.3,col); x1-=4.4; shops.e=1; }
   domus(x0,z0,x1,z1,sides,shops);
 }
-function temple(cx,cz,w,l,podH,colH,by,faceSouth){
+function temple(cx,cz,w,l,podH,colH,by,faceSouth,walk){
   const s=faceSouth?1:-1, ob=BY; BY=by;
   const st=jit(PAL.stone,.03), mb=jit(PAL.marble,.02);
-  put('stone',cx,-2,cz,w,podH+2,l,0,st); colBox(cx-w/2,cz-l/2,cx+w/2,cz+l/2);
+  put('stone',cx,-2,cz,w,podH+2,l,0,st);
+  if(walk){ PLATFORMS.push({x0:cx-w/2,z0:cz-l/2,x1:cx+w/2,z1:cz+l/2,y:by+podH});
+    const d=(Math.max(3,Math.round(podH/.4)))*.55;
+    PLATFORMS.push({x0:cx-w*.31,z0:cz+s*l/2,x1:cx+w*.31,z1:cz+s*(l/2)+d,y:by+podH,ramp:1,rz0:cz+s*(l/2),rz1:cz+s*(l/2)+d}); }
+  else colBox(cx-w/2,cz-l/2,cx+w/2,cz+l/2);
   const nSt=Math.max(3,Math.round(podH/.4));
   for(let i=0;i<nSt;i++){ const d=(nSt-i)*.55; put('stone',cx,-2,cz+s*(l/2+d/2),w*.62,(i+1)*podH/nSt+2,d,0,st); }
-  const cl=l*.56; put('marble',cx,podH,cz-s*(l/2-cl/2-.8),w-3.4,colH,cl,0,mb);
+  const cl=l*.56, cw=w-3.4, ccz=cz-s*(l/2-cl/2-.8);
+  if(walk){ // hollow cella: walls, doorway, floor and the three gods
+    const x0=cx-cw/2, x1=cx+cw/2, z0=ccz-cl/2, z1=ccz+cl/2, t=.85, fz=s>0?z1:z0;
+    put('marble',cx,podH,z0<fz?z0:z1,cw,colH,t,0,mb); colBox(x0,(z0<fz?z0:z1)-t/2,x1,(z0<fz?z0:z1)+t/2);
+    put('marble',x0+t/2,podH,ccz,t,colH,cl,0,mb); colBox(x0,z0,x0+t,z1);
+    put('marble',x1-t/2,podH,ccz,t,colH,cl,0,mb); colBox(x1-t,z0,x1,z1);
+    for(const sd of [-1,1]){ const bw=(cw-4.4)/2; put('marble',cx+sd*(cw/2-bw/2),podH,fz,bw,colH,t,0,mb); colBox(cx+sd*(cw/2-bw/2)-bw/2,fz-t/2,cx+sd*(cw/2-bw/2)+bw/2,fz+t/2); }
+    put('marble',cx,podH+colH-1.1,fz,4.4,1.1,t,0,mb);
+    put('fresco',x0+t,podH+.02,z0+t,.28,colH-1.4,cl-2*t,0,WHITE); put('fresco',x1-t-.28,podH+.02,z0+t,.28,colH-1.4,cl-2*t,0,WHITE);
+    put('fresco',x0+t,podH+.02,(z0<fz?z1-t-.28:z0+t),cw-2*t,colH-1.4,.28,0,WHITE);
+    floorTile(x0+t,z0+t,x1-t,z1-t,podH+.03);
+    const gods=[['#efe9dc',2.6],['#e8dfcd',2.3],['#e3dccb',2.3]];
+    for(let i=0;i<3;i++){ const gx=cx+(i-1)*(cw/3.4), gz=ccz-s*(cl/2-2.6), c=MC(gods[i][0]), hh=gods[i][1];
+      put('marble',gx,podH,gz,2.1,1.1,1.6,0,mb);
+      put('column',gx,podH+1.1,gz,.42,hh*.62,.42,0,c); put('marble',gx,podH+1.1,gz,1.05,.5,.95,0,c);
+      put('leaf',gx,podH+1.1+hh*.62+.26,gz,.26,.3,.26,0,c);
+      for(const sd of [-1,1]) put('column',gx+sd*.5,podH+1.1+hh*.4,gz,.13,hh*.34,.13,0,c); }
+    put('stone',cx,podH,ccz+s*(cl/2-3.4),2.4,1.15,1.6,0,jit('#d7cbb0',.03));
+  } else put('marble',cx,podH,ccz,cw,colH,cl,0,mb);
   const nF=w>24?6:4, r=w/(nF*6.2);
   const xs=[]; for(let i=0;i<nF;i++) xs.push(cx-w/2+1.5+i*(w-3)/(nF-1));
   const zf=cz+s*(l/2-1.6), rows=Math.max(1,Math.floor((l-cl-2)/4.2));
@@ -664,6 +890,13 @@ function temple(cx,cz,w,l,podH,colH,by,faceSouth){
   BY=ob;
 }
 
+const FLOORMAT=lam({map:TEX.mosaic,roughness:.55,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+function floorTile(x0,z0,x1,z1,y,rep){
+  const g=new T.PlaneGeometry(x1-x0,z1-z0); g.rotateX(-Math.PI/2);
+  const u=g.attributes.uv, k=rep||3.2;
+  for(let i=0;i<u.count;i++) u.setXY(i,u.getX(i)*(x1-x0)/k,u.getY(i)*(z1-z0)/k);
+  const m=new T.Mesh(g,FLOORMAT); m.position.set((x0+x1)/2,y,(z0+z1)/2); m.receiveShadow=true; scene.add(m);
+}
 /* ---------------- the city ---------------- */
 // street lines measured on today's centre (OSM), which still follows the Roman grid (~86 m insulae)
 // cardines: Via Catullo, Via Quattro Spade, Via Fama, Via Cappello (cardo maximus), Via Dante, Via Pescheria Vecchia, Via Duomo, Via S. Felicita, Via Ponte Pietra
@@ -677,6 +910,45 @@ function clipLine(vertical,c){
     const ua=vertical?a[0]:a[1], ub=vertical?b[0]:b[1], va=vertical?a[1]:a[0], vb=vertical?b[1]:b[0];
     if(ua===ub) continue; if((ua-c)*(ub-c)<=0){ const t=(c-ua)/(ub-ua); hits.push(va+t*(vb-va)); } }
   return [Math.min(...hits),Math.max(...hits)];
+}
+// The proper names of the Roman streets are lost: only the two main axes and the consular road are known.
+// Cardines and decumani are numbered by the usual archaeological convention; the modern streets on each line
+// were measured on today's map (OpenStreetMap).
+const CARDO_NAMES={
+ '-272':['Cardo I','Via Valerio Catullo · Via Enrico Noris · Via Adua'],
+ '-187':['Cardo II','Via Quattro Spade · Via San Cosimo · Via Scala'],
+ '-104':['Cardo III','Via Fama · Via Quintino Sella · Via San Salvatore Vecchio'],
+ '-17':['Cardo maximus','Via Cappello · Via Leoni · Via Sant’Egidio'],
+ '70':['Cardo V','Via Dante Alighieri · Via Giuseppe Garibaldi · Via Rosa'],
+ '155':['Cardo VI','Via Pescheria Vecchia · Via Arche Scaligere · Via Santa Maria Antica'],
+ '240':['Cardo VII','Via Duomo · Via San Pietro Martire · Via Abramo Massalongo'],
+ '325':['Cardo VIII','Via Santa Felicita · Vicolo Accoliti'],
+ '410':['Cardo IX','Via Ponte Pietra']
+};
+const DECU_NAMES={
+ '-355':['Decumano I','Nessuna via di oggi su questa linea: tracciato ipotetico presso il Duomo'],
+ '-270':['Decumano II','Via Barchetta · Via San Giusto · Vicolo San Fermo Cortalta'],
+ '-180':['Decumano III','Via San Mamaso · Via Pigna · Corte San Mamaso'],
+ '-90':['Decumano IV','Via Francesco Emilei · Via Achille Forti'],
+ '0':['Decumanus maximus','Corso Porta Borsari · Corso Sant’Anastasia (la Via Postumia dentro le mura)'],
+ '87':['Decumano VI','Via Pellicciai · Piazza dei Signori'],
+ '175':['Decumano VII','Via Giuseppe Mazzini · Via Alberto Mario'],
+ '265':['Decumano VIII','Via Stella · Via Anfiteatro · Via Nizza'],
+ '350':['Decumano IX','Via Giovanni Zambelli · Via San Salvatore Corte Regia']
+};
+const OUTSIDE_NAMES=[
+ ['Via Postumia, tratto ovest','Oggi Corso Cavour e Corso Castelvecchio, verso l’Arco dei Gavi'],
+ ['Via Postumia, tratto est','Oltre il Pons Postumius, verso Vicetia: tracciato non conservato'],
+ ['Via per Hostilia','Fuori da Porta Leoni verso sud, oggi Via Pallone e dintorni'],
+ ['Strada del colle','Dalla riva sinistra su al santuario di San Pietro'],
+ ['Lungadige','La strada di riva davanti al teatro']
+];
+function streetAt(x,z){
+  let c=null,d=null;
+  for(const v of XL) if(Math.abs(x-v)<hw(v)+2.5) c=CARDO_NAMES[String(v)];
+  for(const v of ZL) if(Math.abs(z-v)<hw(v)+2.5) d=DECU_NAMES[String(v)];
+  if(c&&d) return [c[0]+' × '+d[0], 'Incrocio · '+c[1].split(' · ')[0]+' e '+d[1].split(' · ')[0]];
+  return c||d;
 }
 const STREETS=[];
 function addStreet(vertical,c,lo,hi,skips){
@@ -695,9 +967,22 @@ function buildStreetDetail(){
       if(b-a<3) continue; const m=(a+b)/2, L=b-a;
       for(const sd of [-1,1]){ const o=c+sd*(s.hw-.7), col=jit('#c2b69c',.04); if(vert) put('stone',o,.2,m,1.4,.52,L,0,col); else put('stone',m,.2,o,L,.52,1.4,0,col); }
       if(s.hw<4&&L>12) for(const e of [a+3.4,b-3.4]) for(const k of [-1,0,1]){ const q=k*1.3, col=jit('#9d9585',.06); if(vert) put('stone',c+q,.2,e,.85,.58,.62,0,col); else put('stone',e,.2,c+q,.62,.58,.85,0,col); }
+      if(rnd()<(s.hw>4?.5:.3)&&L>14){ const sd2=rnd()<.5?-1:1; torch(vert?c+sd2*(s.hw-.9):a+2.6, vert?a+2.6:c+sd2*(s.hw-.9)); }
+      if(s.hw>4&&rnd()<.35&&L>20){   // a cart waiting by the kerb
+        const sd=rnd()<.5?-1:1, e=lerp(a+6,b-6,rnd()), px=vert?c+sd*(s.hw-2.4):e, pz=vert?e:c+sd*(s.hw-2.4), ry=vert?0:Math.PI/2, wd=jit('#7a5a3a',.08);
+        put('wood',px,.85,pz,1.7,.45,3.1,ry,wd); put('wood',px,1.3,pz,1.6,.5,2.4,ry,wd);
+        for(const w of [-1,1]) put('wheel',px+(vert?w*.95:0),.72,pz+(vert?0:w*.95),.16,.72,.72,ry,jit('#6b4f33',.06));
+        put('wood',px+(vert?0:-2.4),.9,pz+(vert?-2.4:0),vert?.12:2.2,.12,vert?2.2:.12,0,wd); colCirc(px,pz,1.6); }
+      if(s.hw<4&&HQ&&rnd()<.3&&L>16){   // washing hung across the lane
+        const e=lerp(a+5,b-5,rnd());
+        for(let k=-2;k<=2;k++){ const cl=jit(pick(['#efe6d2','#d8c9a4','#b8563c','#6f7f8c','#c8a45a']),.07);
+          if(vert) put('cloth',c+k*1.25,4.4,e,1,1.5,.05,0,cl); else put('cloth',e,4.4,c+k*1.25,.05,1.5,1,0,cl); }
+      }
       if(rnd()<.24&&L>24){ const sd=rnd()<.5?-1:1, e=a+3.2, px=vert?c+sd*(s.hw-1.1):e, pz=vert?e:c+sd*(s.hw-1.1);
-        put('stone',px,.2,pz,vert?1.7:2.3,.95,vert?2.3:1.7,0,jit('#b3a78c',.04)); put('pool',px,.3,pz,vert?1.35:1.95,.9,vert?1.95:1.35,0,new T.Color(PAL.pool));
-        put('stone',vert?px+sd*.75:px,.2,vert?pz:pz+sd*.75,vert?.35:.6,1.7,vert?.6:.35,0,jit('#b3a78c',.04)); colCirc(px,pz,1.15); }
+        put('stone',px,.2,pz,vert?1.7:2.3,.95,vert?2.3:1.7,0,jit('#b3a78c',.04)); put('pool',px,.3,pz,vert?1.35:1.95,.9,vert?1.95:1.35,0,MC(PAL.pool));
+        put('stone',vert?px+sd*.75:px,.2,vert?pz:pz+sd*.75,vert?.35:.6,1.7,vert?.6:.35,0,jit('#b3a78c',.04)); colCirc(px,pz,1.15); FOUNTAINS.push([px,pz]);
+        const bx2=vert?px:px+3.4, bz2=vert?pz+3.4:pz;   // a bench beside the fountain
+        put('stone',bx2,0,bz2,vert?.6:2.1,.5,vert?2.1:.6,0,jit('#bdb197',.05)); colCirc(bx2,bz2,.9); }
     }
   }
 }
@@ -715,6 +1000,7 @@ function buildCity(){
     const key=xa+','+za;
     if(key==='-104,87'){ curiaBlock(x0,z0,x1,z1); continue; }
     if(key==='-104,175'){ basilicaBlock(x0,z0,x1,z1); continue; }
+    if(key==='70,0'){ domusInterior(x0,z0,x1,z1); continue; }
     if(key==='155,87'){ baths(x0,z0,x1,z1); continue; }
     if(key==='-187,87'){ templeBlock(x0,z0,x1,z1); continue; }
     const mainsOf=(lx0,lz0,lx1,lz1)=>({n:lz0===z0&&za===0,s:lz1===z1&&zb===0,w:lx0===x0&&(xa===CARDO||fs==='w'),e:lx1===x1&&(xb===CARDO||fs==='e')});
@@ -742,6 +1028,59 @@ function fillPartial(x0,z0,x1,z1){
     const g=.25; lotBuild(a+(i?g:0),b+(j?g:0),c-(i<nx-1?g:0),d-(j<nz-1?g:0),{n:j===0,s:j===nz-1,w:i===0,e:i===nx-1},{});
   }
 }
+function domusInterior(bx0,bz0,bx1,bz1){
+  // a house laid out the Roman way: fauces, atrium with impluvium, tablinum, peristyle
+  const wc=jit('#e7dbc2',.03), rc=jit(PAL.roof[0],.05), mb=jit(PAL.marble,.02), t=.7, h=6.4;
+  const x0=bx0+1, z0=bz0+1, x1=bx1-1, z1=bz1-1;
+  const W=(a,b,c,d,hh)=>{ box('plaster',a,b,c,d,0,hh||h,wc,true); };
+  const F=(a,b,c,d)=>{ put('fresco',a,.02,b,c-a,h-1.5,d-b,0,WHITE); };   // painted lining inside a room
+  const doorZ=(bz0+bz1)/2;
+  // outer walls, with the street door on the west side
+  W(x0,z0,x1,z0+t); W(x0,z1-t,x1,z1); W(x1-t,z0,x1,z1);
+  W(x0,z0,x0+t,doorZ-1.7); W(x0,doorZ+1.7,x0+t,z1);
+  put('stone',x0+t/2,0,doorZ,t+.6,.18,3.6,0,jit('#c9bda2',.04));
+  put('dark',x0+t/2,h-1.2,doorZ,t,1.2,3.4,0,wc);
+  for(const sd of [-1,1]) put('wood',x0+t/2,0,doorZ+sd*1.55,.7,h-1.3,.18,0,jit('#6a4d31',.06));
+  // fauces and atrium
+  const ax0=x0+t+6, ax1=ax0+15, az0=doorZ-7, az1=doorZ+7;
+  W(x0+t,az0-t,ax0,az0); W(x0+t,az1,ax0,az1+t);   // corridor walls
+  floorTile(x0+t,az0,ax0,az1,.45,2.2);
+  floorTile(ax0,az0,ax1,az1,.45,3.4);
+  F(ax0-.3,az0,ax0,az1); F(ax1,az0,ax1+.3,az1); F(ax0,az0-.3,ax1,az0); F(ax0,az1,ax1,az1+.3);
+  const ix=(ax0+ax1)/2, iz=(az0+az1)/2;
+  put('stone',ix,.42,iz,4.6,.5,3.4,0,jit('#cfc3a8',.03)); put('pool',ix,.5,iz,4,.45,2.8,0,MC('#6d9aa2'));
+  for(const sx of [-1,1]) for(const sz of [-1,1]) colPut(ix+sx*2.9,.45,iz+sz*2.3,.28,5.4,mb);
+  // rooms around the atrium, each with its doorway
+  const rw=6.4;
+  for(const sz of [-1,1]){
+    const rz0=sz<0?az0-rw:az1, rz1=sz<0?az0:az1+rw;
+    W(ax0,rz0,ax1,rz0+t,h-.6); W(ax0,rz1-t,ax1,rz1,h-.6);
+    for(let k=0;k<2;k++){ const mx=ax0+4.4+k*6.4; W(mx,rz0,mx+t,rz1,h-.6); }
+    for(let k=0;k<3;k++){ const cx0=ax0+(k?4.4+(k-1)*6.4+t:0), cx1=k<2?ax0+4.4+k*6.4:ax1;
+      floorTile(cx0+.2,rz0+.2,cx1-.2,rz1-.2,.45,2.2);
+      F(cx0+.3,rz0+t,cx0+.6,rz1-t); F(cx1-.6,rz0+t,cx1-.3,rz1-t);
+      const dz=sz<0?az0:az1-t, dx=(cx0+cx1)/2;
+      put('dark',dx,h-1.9,dz+ (sz<0?0:0),2.6,1.2,t,0,wc); }
+    roofOver(ax0-.4,rz0,ax1+.4,rz1,h-.6,rc);
+  }
+  // roof over the atrium, open at the compluvium
+  for(const sz of [-1,1]) put('roof',ix,h,iz+sz*5.1,3.8,1.2,ax1-ax0+1,Math.PI/2,rc);
+  for(const sx of [-1,1]) put('roof',ix+sx*5.9,h,iz,3.4,1.2,10.4,0,rc);
+  // tablinum and peristyle garden
+  const tx0=ax1, tx1=ax1+7;
+  W(tx0,az0,tx1,az0+t,h); W(tx0,az1-t,tx1,az1,h);
+  floorTile(tx0,az0+t,tx1,az1-t,.45,3);
+  roofOver(tx0,az0,tx1,az1,h,rc);
+  const px0=tx1, px1=x1-t, pz0=z0+t+3, pz1=z1-t-3;
+  box('garden',px0+3.4,pz0+3.4,px1-3.4,pz1-3.4,0,.5,jit(PAL.garden,.06),false);
+  for(let x=px0+2;x<px1-1;x+=3.4){ colPut(x,.45,pz0+2,.26,4.6,mb); colPut(x,.45,pz1-2,.26,4.6,mb); }
+  for(let z=pz0+5.4;z<pz1-4;z+=3.4){ colPut(px0+2,.45,z,.26,4.6,mb); colPut(px1-2,.45,z,.26,4.6,mb); }
+  for(const sd of [-1,1]) put('roof',(px0+px1)/2,5.05,sd<0?pz0+2:pz1-2,4.4,.9,px1-px0+1,Math.PI/2,rc);
+  put('stone',(px0+px1)/2,.42,(pz0+pz1)/2,3.2,.55,3.2,0,jit('#cfc3a8',.03)); put('pool',(px0+px1)/2,.5,(pz0+pz1)/2,2.7,.5,2.7,0,MC('#6d9aa2'));
+  for(let k=0;k<7;k++) tree(rnd()<.5?'oak':'cypress',rr(px0+4,px1-4),rr(pz0+4,pz1-4),.5,.5);
+  // street front: shops flanking the door
+  for(const s2 of ['n','s','w']) facade(x0,z0,x1,z1,s2,h,{shops:s2==='w',skipMid:s2==='w'});
+}
 function horti(x0,z0,x1,z1){
   box('stone',x0,z0,x1,z0+.8,0,2.4,jit(PAL.stone,.03),true); box('stone',x0,z1-.8,x1,z1,0,2.4,jit(PAL.stone,.03),true);
   box('stone',x0,z0,x0+.8,z1,0,2.4,jit(PAL.stone,.03),true); box('stone',x1-.8,z0,x1,(z0+z1)/2-2,0,2.4,jit(PAL.stone,.03),true); box('stone',x1-.8,(z0+z1)/2+2,x1,z1,0,2.4,jit(PAL.stone,.03),true);
@@ -765,17 +1104,17 @@ function baths(x0,z0,x1,z1){
   box('plaster',px0,pz1-1,px1,pz1,0,5,st,true); box('plaster',px0,pz0,px0+1,pz1,0,5,st,true);
   colonnade(px0+4,pz0+3,px1-3,pz0+3,3.4,4.6,.28,jit(PAL.marble,.02));
   colonnade(px0+4,pz1-4,px1-3,pz1-4,3.4,4.6,.28,jit(PAL.marble,.02));
-  put('stone',(px0+px1)/2,0,(pz0+pz1)/2,16,.7,10,0,jit(PAL.stone,.02)); put('pool',(px0+px1)/2,.1,(pz0+pz1)/2,15,.66,9,0,new T.Color(PAL.pool));
+  put('stone',(px0+px1)/2,0,(pz0+pz1)/2,16,.7,10,0,jit(PAL.stone,.02)); put('pool',(px0+px1)/2,.1,(pz0+pz1)/2,15,.66,9,0,MC(PAL.pool));
   box('plaster',x1-24,pz0,x1-3,z1-30,0,9,st,true); roofOver(x1-24,pz0,x1-3,z1-30,9,rc);
 }
 function forum(){
   // the open plaza only (168 x 56 m): paving, honours, fountain, market; porticoes and shops belong to the flanking insulae
   const [fx0,fz0,fx1,fz1]=FORUM, cx=(fx0+fx1)/2, mb=jit(PAL.marble,.02);
-  const paveMat=new T.MeshLambertMaterial({map:TEX.slab,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const paveMat=lam({map:TEX.slab,roughness:.86,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const pave=(x0,z0,x1,z1)=>{ const g=new T.PlaneGeometry(x1-x0,z1-z0); g.rotateX(-Math.PI/2); const u=g.attributes.uv; for(let i=0;i<u.count;i++) u.setXY(i,u.getX(i)*(x1-x0)/3.6,u.getY(i)*(z1-z0)/3.6); const m=new T.Mesh(g,paveMat); m.position.set((x0+x1)/2,.5,(z0+z1)/2); m.receiveShadow=true; scene.add(m); };
   pave(fx0,fz0,fx1,fz1); pave(...CAPIT);
   const fz=(fz0+fz1)/2;
-  put('tower',cx,0,fz,3.6,.9,3.6,0,jit(PAL.stone,.02)); colCirc(cx,fz,3.6); put('pool',cx,.1,fz,4.6,.85,4.6,0,new T.Color(PAL.pool)); put('column',cx,0,fz,.45,3,.45,0,mb);
+  put('tower',cx,0,fz,3.6,.9,3.6,0,jit(PAL.stone,.02)); colCirc(cx,fz,3.6); put('pool',cx,.1,fz,4.6,.85,4.6,0,MC(PAL.pool)); put('column',cx,0,fz,.45,3,.45,0,mb);
   for(const x of [fx0+3,fx1-3]) for(let z=fz0+12;z<fz1-6;z+=20){ put('marble',x,0,z,1.4,2.2,1.4,0,mb); colBox(x-.7,z-.7,x+.7,z+.7); put('column',x,2.2,z,.32,1.6,.32,0,jit('#6f5a3a',.05)); put('leaf',x,4,z,.2,.22,.2,0,jit('#6f5a3a',.05)); }
   for(let k=0;k<20;k++){
     const x=rr(fx0+8,fx1-8), z=rr(fz0+10,fz1-10); if(Math.hypot(x-cx,z-fz)<8) continue;
@@ -815,7 +1154,7 @@ function capitolium(){
   portico(x0+5.5,z0+5.5,x1-5.5,z0+5.5,0,-1,4,7,mb);
   portico(x0+5.5,z0+9.5,x0+5.5,z1-3,-1,0,4,7,mb);
   portico(x1-5.5,z0+9.5,x1-5.5,z1-3,1,0,4,7,mb);
-  temple(cx,(z0+z1)/2-4,35,42,4,12.5,0,true);
+  temple(cx,(z0+z1)/2-4,35,42,4,12.5,0,true,true);
 }
 
 /* --- walls, towers, gates --- */
@@ -850,6 +1189,7 @@ function buildWalls(){
     }
   }
   GATES.forEach(buildGate);
+  for(const g of GATES){ const n=[g.nx||0,g.nz||0]; torch(g.x+n[0]*4-g.ux*7,g.z+n[1]*4-g.uz*7); torch(g.x+n[0]*4+g.ux*7,g.z+n[1]*4+g.uz*7); }
 }
 function buildGate(g){
   const {x,z,ry,w}=g, pos=(lx,lz)=>Lw(x,z,ry,lx,lz);
@@ -890,7 +1230,7 @@ function cavea(cx,cz,fa,fb,th0,th1,N,S,hk,floorY,skip,c1,c2,parent){
   const pos=[], col=[];
   const P=(s,t)=>[cx+Math.cos(t)*fa(s), cz+Math.sin(t)*fb(s)];
   const quad=(a,b,c,d,color)=>{ pos.push(...a,...b,...c,...a,...c,...d); for(let i=0;i<6;i++) col.push(color.r,color.g,color.b); };
-  const C1=new T.Color(c1), C2=new T.Color(c2), CR=new T.Color(c1).multiplyScalar(.82);
+  const C1=MC(c1), C2=MC(c2), CR=MC(c1).multiplyScalar(.82);
   for(let i=0;i<N;i++){
     const t0=th0+(th1-th0)*i/N, t1=th0+(th1-th0)*(i+1)/N, tm=(t0+t1)/2;
     for(let k=-1;k<S;k++){
@@ -907,15 +1247,15 @@ function cavea(cx,cz,fa,fb,th0,th1,N,S,hk,floorY,skip,c1,c2,parent){
     }
   }
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3)); g.setAttribute('color',new T.Float32BufferAttribute(col,3)); g.computeVertexNormals();
-  const m=new T.Mesh(g,new T.MeshLambertMaterial({vertexColors:true,side:T.DoubleSide})); m.castShadow=m.receiveShadow=true; (parent||scene).add(m);
+  const m=new T.Mesh(g,lam({vertexColors:true,side:T.DoubleSide,roughness:.9})); m.castShadow=m.receiveShadow=true; (parent||scene).add(m);
 }
 function buildArena(){
   const {x,z}=AR;
-  const floor=new T.Mesh(new T.CircleGeometry(1,64),lam({color:0xd8c497})); floor.rotation.x=-Math.PI/2; floor.scale.set(AR.Ai+1,AR.Bi+1,1); floor.position.set(x,.3,z); floor.receiveShadow=true; scene.add(floor);
+  const floor=new T.Mesh(new T.CircleGeometry(1,64),lam({color:MC('#d8c497'),roughness:.96})); floor.rotation.x=-Math.PI/2; floor.scale.set(AR.Ai+1,AR.Bi+1,1); floor.position.set(x,.3,z); floor.receiveShadow=true; scene.add(floor);
   cavea(x,z,s=>AR.Ai+(AR.So-AR.Ai)*s,s=>AR.Bi+(AR.Sb-AR.Bi)*s,0,Math.PI*2,AR.N,AR.S,k=>3+k/AR.S*25,.3,(dx,dz)=>arenaCorr(dx,dz),'#c7b38e','#bca783');
-  const wm=new T.MeshLambertMaterial({map:TEX.arena,side:T.DoubleSide});
+  const wm=lam({map:TEX.arena,side:T.DoubleSide,roughness:.9});
   ellipseBand(x,z,AR.Ao,AR.Bo,0,30,0,Math.PI*2,AR.N,(dx,dz)=>arenaCorr(dx,dz),72,wm);
-  ellipseBand(x,z,AR.So+.3,AR.Sb+.3,0,30.2,0,Math.PI*2,AR.N,(dx,dz)=>arenaCorr(dx,dz),72,lam({color:0xb9a47f,side:T.DoubleSide}));
+  ellipseBand(x,z,AR.So+.3,AR.Sb+.3,0,30.2,0,Math.PI*2,AR.N,(dx,dz)=>arenaCorr(dx,dz),72,lam({color:MC('#b9a47f'),side:T.DoubleSide,roughness:.9}));
   // rim
   const rim=[]; const N=AR.N;
   for(let i=0;i<N;i++){ const t0=i/N*Math.PI*2, t1=(i+1)/N*Math.PI*2;
@@ -923,7 +1263,7 @@ function buildArena(){
     if(arenaCorr((o0[0]+o1[0])/2-x,(o0[1]+o1[1])/2-z)) continue;
     rim.push(o0[0],30,o0[1],i1[0],30.2,i1[1],o1[0],30,o1[1], o0[0],30,o0[1],i0[0],30.2,i0[1],i1[0],30.2,i1[1]);
   }
-  const rg=new T.BufferGeometry(); rg.setAttribute('position',new T.Float32BufferAttribute(rim,3)); rg.computeVertexNormals(); scene.add(new T.Mesh(rg,lam({color:0xcdb893,side:T.DoubleSide})));
+  const rg=new T.BufferGeometry(); rg.setAttribute('position',new T.Float32BufferAttribute(rim,3)); rg.computeVertexNormals(); scene.add(new T.Mesh(rg,lam({color:MC('#cdb893'),side:T.DoubleSide,roughness:.9})));
   // corridor walls
   const st=jit(PAL.stone,.02);
   for(const sx of [-1,1]) for(let k=0;k<7;k++){
@@ -941,8 +1281,8 @@ function buildTheatre(){
   const TP=(kind,lx,y,lz,sx,sy,sz,col,lry=0)=>{ const p=W(lx,lz); put(kind,p[0],y,p[1],sx,sy,sz,TH.ry+lry,col); };
   const TC=(lx,y,lz,r,h,col)=>{ const p=W(lx,lz); colPut(p[0],y,p[1],r,h,col); };
   cavea(0,0,s=>r0+(r1-r0)*s,s=>r0+(r1-r0)*s,Math.PI,Math.PI*2,72,S,k=>1.6+k/S*30,1.2,null,'#c9b793','#bda985',grp);
-  const orch=new T.Mesh(new T.CircleGeometry(r0,40,0,Math.PI),lam({color:0xe3dccb})); orch.rotation.x=-Math.PI/2; orch.position.set(0,1.22,0); orch.receiveShadow=true; grp.add(orch);
-  const m=new T.MeshLambertMaterial({map:TEX.arena,side:T.DoubleSide});
+  const orch=new T.Mesh(new T.CircleGeometry(r0,40,0,Math.PI),lam({color:MC('#e3dccb'),roughness:.55})); orch.rotation.x=-Math.PI/2; orch.position.set(0,1.22,0); orch.receiveShadow=true; grp.add(orch);
+  const m=lam({map:TEX.arena,side:T.DoubleSide,roughness:.9});
   ellipseBand(0,0,TH.r1+2,TH.r1+2,-4,33,Math.PI,Math.PI*2,72,null,30,m,grp);
   const st=jit(PAL.stone,.02), mb=jit(PAL.marble,.02);
   for(let i=0;i<=40;i++){ const a=Math.PI+i/40*Math.PI; TC(Math.cos(a)*(TH.r1+.8),31.6,Math.sin(a)*(TH.r1+.8),.34,4.2,mb); }
@@ -985,7 +1325,7 @@ function pontePietraTower(b){
   P('roof',0,21.6,0,10.2,3.2,11.8,rc); P('roof',0,21.6,0,11.8,3.2,10.2,rc);
 }
 function buildBridges(){
-  const mat=lam({color:0xc5b494});
+  const mat=lam({color:MC('#c5b494'),roughness:.88});
   for(const b of BRIDGES){
     const sh=new T.Shape(), n=48;
     sh.moveTo(0,-7);
@@ -1008,12 +1348,13 @@ function buildBridges(){
     // deck paving
     const pts=[]; for(let i=0;i<=n;i++){ const t=i/n; pts.push([b.ax+b.ux*t*b.L,b.az+b.uz*t*b.L]); }
     if(b.la==='Pons Marmoreus') pontePietraTower(b);
+    for(const t of [.18,.5,.82]){ const q=deckH(b,t); torch(b.ax+b.ux*b.L*t-b.uz*(b.w/2-.6),b.az+b.uz*b.L*t+b.ux*(b.w/2-.6),q); }
     ribbon(pts,b.w-1.2,(xx,zz)=>{ const q=bridgeAt(xx,zz); return (q?q.y:deckH(b,0))+.03; },ROADMAT,4);
   }
 }
 
 /* --- ribbons: streets and roads --- */
-const ROADMAT=new T.MeshLambertMaterial({map:TEX.pave,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4});
+const ROADMAT=lam({map:TEX.pave,roughness:.82,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4});
 function ribbon(pts,w,yfn,mat,step=4){
   const P=[pts[0]];
   for(let i=1;i<pts.length;i++){ const a=pts[i-1], b=pts[i], L=Math.hypot(b[0]-a[0],b[1]-a[1]), n=Math.max(1,Math.ceil(L/step)); for(let k=1;k<=n;k++) P.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]); }
@@ -1046,7 +1387,8 @@ function buildStreets(){
 }
 
 /* --- terrain --- */
-const C3=h=>new T.Color(h);
+const C3=h=>new T.Color(h).convertSRGBToLinear();
+let WATERMAT=null;
 const GC={city:C3('#a59779'),bank:C3('#958767'),mud:C3('#6f6a55'),grass:C3('#6f8a3e'),wood:C3('#4f6634'),rock:C3('#8b8a7a'),high:C3('#7d846a'),
   fields:['#b7a35a','#9ba34e','#7c9a44','#8b7353','#6f8f3e','#a9a15c','#809247'].map(C3)};
 const _gc=new T.Color();
@@ -1065,7 +1407,7 @@ function groundColor(x,z,h,out){
   }
   _gc.multiplyScalar(n); out[0]=_gc.r; out[1]=_gc.g; out[2]=_gc.b; return out;
 }
-const TERRAINMAT=(()=>{ const m=lam({vertexColors:true}); m.onBeforeCompile=sh=>{ sh.uniforms.gMap={value:TEX.grass};
+const TERRAINMAT=(()=>{ const m=lam({vertexColors:true,roughness:.97}); m.onBeforeCompile=sh=>{ sh.uniforms.gMap={value:TEX.grass};
   sh.vertexShader='varying vec2 vDW;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvDW=(modelMatrix*vec4(position,1.0)).xz;');
   sh.fragmentShader='uniform sampler2D gMap;varying vec2 vDW;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nvec3 g1=texture2D(gMap,vDW/4.5).rgb*2.0; vec3 g2=texture2D(gMap,vDW/33.0+.37).rgb*2.0; diffuseColor.rgb*=mix(vec3(1.0),g1,.55)*mix(vec3(1.0),g2,.45);'); };
   m.customProgramCacheKey=()=>'terrain'; return m; })();
@@ -1086,7 +1428,7 @@ function buildTerrain(){
     if(i){ const k=i*2; idx.push(k-2,k-1,k,k-1,k+1,k); }
   }
   const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new T.Float32BufferAttribute(uv,2)); g.setIndex(idx); g.computeVertexNormals();
-  const wm=new T.MeshPhongMaterial({color:0x4a7a82,specular:0xd8eef0,shininess:70,normalMap:TEX.water,normalScale:new T.Vector2(.55,.55),transparent:true,opacity:.94});
+  const wm=WATERMAT=new T.MeshStandardMaterial({color:MC('#40707c'),roughness:.075,metalness:.02,normalMap:TEX.water,normalScale:new T.Vector2(.5,.5),transparent:true,opacity:.93});
   const water=new T.Mesh(g,wm); water.receiveShadow=true; scene.add(water);
 }
 
@@ -1170,45 +1512,66 @@ function buildCountry(){
 }
 
 /* --- people & boats --- */
-let people, heads, walkers=[];
+let PEOPLE=null, walkers=[];
 function buildPeople(){
-  const N=HQ?560:380;
-  people=new T.InstancedMesh(new T.CylinderGeometry(.19,.3,1.32,8).translate(0,.66,0),lam(),N);
-  heads=new T.InstancedMesh(new T.SphereGeometry(.13,8,6).translate(0,1.47,0),lam(),N);
-  const tunic=['#e9e2d0','#d8c9a4','#b8563c','#8a6a4a','#6f7f8c','#c8a45a','#efe9dc','#7a4a5a','#e3dcc8'];
-  const skin=['#c99a78','#b8845f','#d7ab88','#a8764f'];
+  const N=HQ?520:340;
+  const limb=new T.CylinderGeometry(.85,1,1,6), body=new T.CylinderGeometry(.62,1,1,9), ball=new T.SphereGeometry(1,9,7);
+  const mk=(g,shadow)=>{ const m=new T.InstancedMesh(g,lam({roughness:.85}),N); m.frustumCulled=false; m.castShadow=shadow; scene.add(m); return m; };
+  PEOPLE={body:mk(body,true), head:mk(ball,false), hair:mk(ball,false), armL:mk(limb,false), armR:mk(limb,false), legL:mk(limb,true), legR:mk(limb,true)};
+  const tunic=['#e9e2d0','#d8c9a4','#b8563c','#8a6a4a','#6f7f8c','#c8a45a','#efe9dc','#7a4a5a','#e3dcc8','#9c7f4e'];
+  const skin=['#c99a78','#b8845f','#d7ab88','#a8764f','#8e6242'];
+  const hair=['#2b1f18','#4a3220','#6b4c2a','#8d7b62','#d8d2c4'];
   for(let i=0;i<N;i++){
     let w;
-    if(i<N*.8){ const s=STREETS[Math.floor(rnd()*STREETS.length)]; const L=Math.hypot(s.bx-s.ax,s.bz-s.az); w={s,L,t:rnd(),dir:rnd()<.5?1:-1,v:rnd()<.12?0:rr(.9,1.6),off:rr(-s.hw+1,s.hw-1)}; }
+    if(i<N*.8){ const s2=STREETS[Math.floor(rnd()*STREETS.length)]; const L=Math.hypot(s2.bx-s2.ax,s2.bz-s2.az); w={s:s2,L,t:rnd(),dir:rnd()<.5?1:-1,v:rnd()<.12?0:rr(.9,1.6),off:rr(-s2.hw+1,s2.hw-1)}; }
     else { w={forum:true,x:rr(-30,18),z:rr(12,165),tx:rr(-30,18),tz:rr(12,165),v:rnd()<.3?0:rr(.6,1.2)}; }
-    w.ph=rnd()*10; w.sc=rr(.92,1.08); walkers.push(w);
-    people.setColorAt(i,jit(pick(tunic),.08)); heads.setColorAt(i,jit(pick(skin),.06));
+    w.ph=rnd()*10; w.sc=rr(.94,1.07)*(rnd()<.12?.78:1); w.yaw=rnd()*6.3; walkers.push(w);
+    const sk=jit(pick(skin),.05), tu=jit(pick(tunic),.08);
+    PEOPLE.body.setColorAt(i,tu); PEOPLE.head.setColorAt(i,sk); PEOPLE.hair.setColorAt(i,jit(pick(hair),.07));
+    PEOPLE.armL.setColorAt(i,sk); PEOPLE.armR.setColorAt(i,sk);
+    const lc=rnd()<.35?tu:sk; PEOPLE.legL.setColorAt(i,lc); PEOPLE.legR.setColorAt(i,lc);
   }
-  people.frustumCulled=heads.frustumCulled=false; people.castShadow=true;
-  scene.add(people); scene.add(heads);
 }
-const _m4=new T.Matrix4();
+const _m4=new T.Matrix4(), _pq=new T.Quaternion(), _pe=new T.Euler(0,0,0,'YXZ'), _pp=new T.Vector3(), _ps=new T.Vector3();
+function partAt(mesh,i,px,py,pz,yaw,swing,ox,oy,len,rad,sc){
+  // limb/body piece hanging from a pivot, swinging around the hip or shoulder
+  const c=Math.cos(swing), sn=Math.sin(swing);
+  const ly=oy-len*.5*c, lz=-len*.5*sn;
+  const cy=Math.cos(yaw), sy=Math.sin(yaw);
+  _pp.set(px+(ox*cy+lz*sy)*sc, py+ly*sc, pz+(-ox*sy+lz*cy)*sc);
+  _pe.set(swing,yaw,0); _pq.setFromEuler(_pe);
+  _ps.set(rad*sc,len*sc,rad*sc);
+  _m4.compose(_pp,_pq,_ps); mesh.setMatrixAt(i,_m4);
+}
 function updatePeople(dt,time){
   for(let i=0;i<walkers.length;i++){
-    const w=walkers[i]; let x,z;
+    const w=walkers[i]; let x,z,dx=0,dz=0;
     if(w.forum){
-      const dx=w.tx-w.x, dz=w.tz-w.z, d=Math.hypot(dx,dz);
-      if(d<.5){ w.tx=rr(-30,18); w.tz=rr(12,166); } else { w.x+=dx/d*w.v*dt; w.z+=dz/d*w.v*dt; }
+      const tx=w.tx-w.x, tz=w.tz-w.z, d=Math.hypot(tx,tz);
+      if(d<.5){ w.tx=rr(-30,18); w.tz=rr(12,166); } else { const k=w.v*dt/d; w.x+=tx*k; w.z+=tz*k; dx=tx; dz=tz; }
       x=w.x; z=w.z;
     } else {
       w.t+=w.dir*w.v*dt/w.L; if(w.t>1){w.t=1;w.dir=-1;} if(w.t<0){w.t=0;w.dir=1;}
-      const s=w.s, ox=-(s.bz-s.az)/w.L, oz=(s.bx-s.ax)/w.L;
-      x=s.ax+(s.bx-s.ax)*w.t+ox*w.off; z=s.az+(s.bz-s.az)*w.t+oz*w.off;
+      const s2=w.s, ox=-(s2.bz-s2.az)/w.L, oz=(s2.bx-s2.ax)/w.L;
+      x=s2.ax+(s2.bx-s2.ax)*w.t+ox*w.off; z=s2.az+(s2.bz-s2.az)*w.t+oz*w.off;
+      dx=(s2.bx-s2.ax)*w.dir; dz=(s2.bz-s2.az)*w.dir;
     }
-    const bob=w.v?Math.abs(Math.sin(time*7*w.v+w.ph))*.05:0;
-    _m4.makeScale(w.sc,w.sc,w.sc); _m4.setPosition(x,.45+bob,z);
-    people.setMatrixAt(i,_m4); heads.setMatrixAt(i,_m4);
+    if(w.v&&(dx||dz)) w.yaw=Math.atan2(dx,dz);
+    const step=w.v?Math.sin(time*3.4*w.v+w.ph):0, sw=step*.5, bob=w.v?Math.abs(Math.cos(time*3.4*w.v+w.ph))*.035:0;
+    const sc=w.sc, y=.02+bob, yaw=w.yaw;
+    partAt(PEOPLE.legL,i,x,y,z,yaw,sw,-.11,.86,.86,.15,sc);
+    partAt(PEOPLE.legR,i,x,y,z,yaw,-sw,.11,.86,.86,.15,sc);
+    partAt(PEOPLE.body,i,x,y,z,yaw,0,0,1.62,.82,.32,sc);
+    partAt(PEOPLE.armL,i,x,y,z,yaw,-sw*.8,-.26,1.52,.66,.095,sc);
+    partAt(PEOPLE.armR,i,x,y,z,yaw,sw*.8,.26,1.52,.66,.095,sc);
+    partAt(PEOPLE.head,i,x,y,z,yaw,0,0,1.78,.24,.12,sc);
+    partAt(PEOPLE.hair,i,x,y+.015,z,yaw,0,0,1.80,.21,.125,sc);
   }
-  people.instanceMatrix.needsUpdate=true; heads.instanceMatrix.needsUpdate=true;
+  for(const k in PEOPLE) PEOPLE[k].instanceMatrix.needsUpdate=true;
 }
 const boats=[];
 function buildBoats(){
-  const hullM=lam({color:0x6b4a2e}), sailM=lam({color:0xe8dfc8,side:T.DoubleSide}), cargoM=lam({color:0xb07a4a});
+  const hullM=lam({color:MC('#6b4a2e'),roughness:.9}), sailM=lam({color:MC('#e8dfc8'),side:T.DoubleSide,roughness:.9}), cargoM=lam({color:MC('#b07a4a'),roughness:.9});
   for(let i=0;i<7;i++){
     const g=new T.Group();
     const hull=new T.Mesh(new T.BoxGeometry(10,1.3,2.8),hullM); hull.position.y=.2; g.add(hull);
@@ -1231,6 +1594,7 @@ function updateBoats(dt){
 /* ---------------- places ---------------- */
 const PLACES=[
   {id:'forum',la:'Forum',it:'Il foro · oggi Piazza delle Erbe',x:-6,z:88,r:84,v:[-6,12,-6,120],txt:'Una piazza lunga 168 m e larga 56, lastricata in calcare bianco e rosa, a sud-est del decumano: Corso Porta Borsari e Corso Sant’Anastasia la toccano sul lato corto. Era circa il doppio dell’attuale Piazza delle Erbe.'},
+  {id:'domus',la:'Domus',it:'Una casa da attraversare',x:112,z:44,r:48,v:[74,44,120,44],txt:'Si entra dalla strada: corridoio d’ingresso, atrio con la vasca dell’impluvio sotto l’apertura del tetto, stanze dipinte in rosso pompeiano, tablino e giardino con il portico. Pianta tipica, non una casa veronese documentata.'},
   {id:'curia',la:'Curia',it:'La sede del consiglio cittadino',x:-55,z:112,r:22,v:[-24,112,-55,112],txt:'Sul lato sud-ovest del foro, larga circa 27 m, con una grande scalinata verso la piazza. Qui la ricostruzione è semplificata.'},
   {id:'basilica',la:'Basilica',it:'Tribunale e affari · lungo Via Mazzini',x:-62,z:198,r:30,v:[-62,172,-62,200],txt:'Oltre il decumano secondario a sud del foro, dove oggi corre Via Mazzini; ne restano tracce di età severiana. Forma e alzato sono ipotetici.'},
   {id:'capit',la:'Capitolium',it:'Tempio della Triade capitolina',x:-60,z:-46,r:40,v:[-60,-8,-60,-50],txt:'Giove, Giunone e Minerva: il tempio (35 × 42 m) stava a nord-ovest del foro, oltre il decumano, su alto podio rivolto verso la piazza, abbracciato da un portico di circa 80 m su tre lati. I resti sono sotto Corte Sgarzerie.'},
@@ -1337,7 +1701,11 @@ addEventListener('keydown',e=>{
   const k=KEYMAP[e.code];
   if(k){ keys[k]=1; e.preventDefault(); if($('#intro').hidden===false&&mode==='intro'&&['f','b','l','r'].includes(k)){ hideIntro(); setMode('fly'); } }
   if(e.code==='KeyF'&&!e.repeat) toggleFly();
+  if(e.code==='KeyT'&&!e.repeat){ tour?endTour():startTour(); }
+  if(e.code==='KeyP'&&!e.repeat) togglePhoto();
+  if(tour&&k) endTour();
   if(e.code==='KeyM'&&!e.repeat) toggleMap();
+  if(!e.repeat&&['Digit1','Digit2','Digit3','Digit4'].includes(e.code)) setHour(['alba','giorno','tramonto','notte'][+e.code.slice(5)-1]);
   if(e.code==='Escape'&&!$('#mapView').hidden) toggleMap(false);
 });
 addEventListener('keyup',e=>{ const k=KEYMAP[e.code]; if(k) keys[k]=0; });
@@ -1361,7 +1729,8 @@ canvas.addEventListener('pointerup',e=>{
   drag=null;
 });
 document.addEventListener('pointerlockchange',()=>{ locked=document.pointerLockElement===canvas; });
-function look(dx,dy){ if(travel) return; if(mode==='intro'){ hideIntro(); setMode('fly'); } yaw-=dx; pitch=clamp(pitch-dy,-1.45,1.45); }
+function look(dx,dy){ if(tour&&(dx||dy)) endTour();
+  if(travel) return; if(mode==='intro'){ hideIntro(); setMode('fly'); } yaw-=dx; pitch=clamp(pitch-dy,-1.45,1.45); }
 
 // touch: joystick + look
 const joyEl=$('#joy'), knob=$('#joyKnob'); const touchLook={};
@@ -1377,6 +1746,14 @@ canvas.addEventListener('touchend',e=>{ for(const t of e.changedTouches) delete 
 $('#bEnter').addEventListener('click',()=>{ track('enter_city',{entry:'porta-borsari'}); goTo(-368,1,-300,0,3.2); });
 $('#bSoar').addEventListener('click',()=>{ track('soar_city'); hideIntro(); setMode('fly'); });
 $('#bFly').addEventListener('click',toggleFly);
+$('#bTour').addEventListener('click',startTour); $('#bTour2').addEventListener('click',startTour);
+$('#bLink').addEventListener('click',copyLink);
+$('#bSound').addEventListener('click',()=>{ soundOn(!SND.on); track('sound_toggle',{enabled:SND.on}); });
+addEventListener('pointerdown',()=>{ if(SND.on) soundOn(true); },{once:true});
+addEventListener('keydown',()=>{ if(SND.on) soundOn(true); },{once:true});
+$('#tourNext').addEventListener('click',()=>{ if(tour){ track('tour_next',{step:tour.i+1}); tour.dwell=0; if(!travel) tourNext(); } });
+$('#tourEnd').addEventListener('click',endTour);
+document.querySelectorAll('#hours .btn').forEach(b=>b.addEventListener('click',()=>{ setHour(b.dataset.h); track('time_change',{hour:b.dataset.h}); }));
 $('#bMap').addEventListener('click',()=>toggleMap(true));
 $('#mini').addEventListener('click',()=>toggleMap(true));
 $('#mapClose').addEventListener('click',()=>toggleMap(false));
@@ -1393,11 +1770,182 @@ bigMap.addEventListener('click',e=>{
   const r=bigMap.getBoundingClientRect(); const [x,z]=mapUnproj((e.clientX-r.left)/r.width*MAPS,(e.clientY-r.top)/r.height*MAPS);
   toggleMap(false); goTo(x,z,x-Math.sin(yaw)*20,z-Math.cos(yaw)*20);
 });
+function buildStreetTable(){
+  const t=$('#streetTable'); let html='<tr><th>Strada romana</th><th>Oggi</th></tr>';
+  const row=(a,b)=>{ html+='<tr><td class="la">'+a+'</td><td class="now">'+b+'</td></tr>'; };
+  html+='<tr><th colspan="2">Cardini · da ovest a est</th></tr>';
+  for(const v of XL){ const n=CARDO_NAMES[String(v)]; if(n) row(n[0],n[1]); }
+  html+='<tr><th colspan="2">Decumani · da nord a sud</th></tr>';
+  for(const v of ZL){ const n=DECU_NAMES[String(v)]; if(n) row(n[0],n[1]); }
+  html+='<tr><th colspan="2">Strade fuori le mura</th></tr>';
+  for(const o of OUTSIDE_NAMES) row(o[0],o[1]);
+  t.innerHTML=html;
+}
 function buildPlaceList(){
   const ul=$('#placeList');
   for(const p of PLACES){ const li=document.createElement('li'); const b=document.createElement('button'); b.className='go'; b.type='button';
     b.innerHTML=`<span class="la"></span><span class="it2"></span><span class="arrow">VAI</span>`; b.querySelector('.la').textContent=p.la; b.querySelector('.it2').textContent=p.it;
     b.addEventListener('click',()=>{ track('select_place',{id:p.id,name:p.la}); toggleMap(false); goTo(p.v[0],p.v[1],p.v[2],p.v[3]); }); li.appendChild(b); ul.appendChild(li); }
+}
+
+/* ---------------- ambient sound, synthesised in the browser ---------------- */
+const SND={on:true,ctx:null,ready:false,step:0,last:{}};
+try{ SND.on=localStorage.getItem('vr-sound')!=='0'; }catch(_){}
+function noiseBuffer(ctx,sec){
+  const b=ctx.createBuffer(1,ctx.sampleRate*sec,ctx.sampleRate), d=b.getChannelData(0);
+  let last=0;
+  for(let i=0;i<d.length;i++){ const w=Math.random()*2-1; last=(last+.02*w)/1.02; d[i]=last*3.2; }
+  return b;
+}
+function layer(ctx,buf,type,freq,q,gain){
+  const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+  const f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; if(q) f.Q.value=q;
+  const g=ctx.createGain(); g.gain.value=0;
+  src.connect(f); f.connect(g); src.start();
+  return {src,f,g,target:gain||0};
+}
+function initSound(){
+  if(SND.ctx) return;
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+  const ctx=new AC(); SND.ctx=ctx;
+  const master=ctx.createGain(); master.gain.value=0; master.connect(ctx.destination);
+  const air=ctx.createBiquadFilter(); air.type='lowpass'; air.frequency.value=20000; air.connect(master);
+  const buf=noiseBuffer(ctx,3);
+  SND.master=master; SND.air=air; SND.buf=buf;
+  SND.wind=layer(ctx,buf,'lowpass',420,.6); SND.wind.g.connect(air);
+  SND.river=layer(ctx,buf,'bandpass',760,.7); SND.river.g.connect(air);
+  SND.crowd=layer(ctx,buf,'bandpass',480,1.4); SND.crowd.g.connect(air);
+  SND.water=layer(ctx,buf,'highpass',2200,.7); SND.water.g.connect(air);
+  SND.ready=true;
+  scheduleCritter();
+}
+function soundOn(v){
+  SND.on=v; $('#bSound').classList.toggle('on',v);
+  try{ localStorage.setItem('vr-sound',v?'1':'0'); }catch(_){}
+  if(v){ initSound(); if(SND.ctx&&SND.ctx.state==='suspended') SND.ctx.resume(); }
+}
+function chirp(){
+  if(!SND.ready||!SND.on) return;
+  const ctx=SND.ctx, t=ctx.currentTime, night=(HOURS[HOUR]||HOURS.giorno).night>0;
+  const g=ctx.createGain(); g.connect(SND.air); g.gain.value=0;
+  if(night){ // crickets: a short buzzy pulse train
+    const o=ctx.createOscillator(); o.type='square'; o.frequency.value=3800+Math.random()*900;
+    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=4200; f.Q.value=8;
+    o.connect(f); f.connect(g); o.start(t);
+    for(let i=0;i<6;i++){ const s=t+i*.09; g.gain.setValueAtTime(.0009,s); g.gain.linearRampToValueAtTime(.006,s+.012); g.gain.linearRampToValueAtTime(.0005,s+.05); }
+    o.stop(t+.62);
+  } else { // birds: two or three whistled notes
+    const o=ctx.createOscillator(); o.type='sine'; o.connect(g); o.start(t);
+    let s=t; const n=2+Math.floor(Math.random()*3);
+    for(let i=0;i<n;i++){ const f0=2100+Math.random()*1500;
+      o.frequency.setValueAtTime(f0,s); o.frequency.exponentialRampToValueAtTime(f0*(1.3+Math.random()*.5),s+.07);
+      g.gain.setValueAtTime(.0008,s); g.gain.linearRampToValueAtTime(.013,s+.02); g.gain.exponentialRampToValueAtTime(.0006,s+.13); s+=.16+Math.random()*.1; }
+    o.stop(s+.2);
+  }
+}
+function scheduleCritter(){
+  const night=(HOURS[HOUR]||HOURS.giorno).night>0;
+  setTimeout(()=>{ if(SND.on&&SND.ready&&mode!=='intro') chirp(); scheduleCritter(); }, night?rr(900,2600):rr(1400,5200));
+}
+function footstep(){
+  if(!SND.ready||!SND.on) return;
+  const ctx=SND.ctx, t=ctx.currentTime;
+  const x=camera.position.x, z=camera.position.z;
+  const onBridge=!!bridgeAt(x,z), inCity=cityDist(x,z)<0;
+  const onStone=onBridge||inCity;
+  const src=ctx.createBufferSource(); src.buffer=SND.buf; src.loop=true;
+  const f=ctx.createBiquadFilter();
+  if(onBridge){ f.type='bandpass'; f.frequency.value=320; f.Q.value=1.2; }
+  else if(onStone){ f.type='highpass'; f.frequency.value=900; }
+  else { f.type='lowpass'; f.frequency.value=700; }
+  const g=ctx.createGain(); g.gain.value=0;
+  src.connect(f); f.connect(g); g.connect(SND.air); src.start(t);
+  const vol=onStone?.055:.035;
+  g.gain.setValueAtTime(.0005,t); g.gain.linearRampToValueAtTime(vol,t+.008); g.gain.exponentialRampToValueAtTime(.0004,t+(onStone?.13:.18));
+  src.stop(t+.25);
+}
+let lastStepPh=0;
+function updateSound(dt){
+  if(!SND.ready) return;
+  const want=SND.on&&mode!=='intro'?1:0;
+  SND.master.gain.value+= (want-SND.master.gain.value)*Math.min(1,dt*3);
+  if(!SND.on) return;
+  const x=camera.position.x, z=camera.position.z, alt=camera.position.y-groundH(x,z);
+  const rd=riverDist(x,z), cd=cityDist(x,z);
+  let fd=1e9; for(const f of FOUNTAINS){ const d=(f[0]-x)**2+(f[1]-z)**2; if(d<fd) fd=d; } fd=Math.sqrt(fd);
+  const night=(HOURS[HOUR]||HOURS.giorno).night>0;
+  const set=(l,v)=>{ l.g.gain.value+=(v-l.g.gain.value)*Math.min(1,dt*1.6); };
+  set(SND.wind,.02+.05*smooth(0,220,alt)+(cd>0?.012:0));
+  set(SND.river,.16*Math.max(0,1-rd/230));
+  const near=cd<0?.055:.012, plaza=Math.max(0,1-Math.hypot(x+6,z-88)/150)*.06;
+  set(SND.crowd,(night?.18:1)*(near+plaza)*(alt>60?.3:1));
+  set(SND.water,fd<26?.05*(1-fd/26):0);
+  SND.air.frequency.value=alt>80?2600:14000;
+  if(mode==='walk'&&!travel){
+    const ph=bobPh;
+    if(ph-lastStepPh>Math.PI*.5){ lastStepPh=ph; footstep(); }
+    if(ph<lastStepPh) lastStepPh=ph;
+  }
+}
+
+/* ---------------- guided tour, photo mode, link ---------------- */
+const TOURSTOPS=['borsari','decumanus','forum','capit','domus','cardo','arena','pietra','theatre'];
+let tour=null;
+function startTour(){
+  hideIntro(); if(!$('#mapView').hidden) toggleMap(false);
+  tour={i:-1,dwell:0}; track('start_tour'); document.body.classList.add('tour'); $('#tour').hidden=false; tourNext();
+}
+function tourNext(){
+  if(!tour) return;
+  tour.i++;
+  if(tour.i>=TOURSTOPS.length){ endTour(); return; }
+  const p=PLACES.find(q=>q.id===TOURSTOPS[tour.i]);
+  track('tour_step',{step:tour.i+1,id:p.id,name:p.la});
+  $('#tourN').textContent=(tour.i+1)+' / '+TOURSTOPS.length;
+  $('#tourLa').textContent=p.la; $('#tourIt').textContent=p.it; $('#tourTxt').textContent=p.txt;
+  const d=Math.hypot(camera.position.x-p.v[0],camera.position.z-p.v[1]);
+  goTo(p.v[0],p.v[1],p.v[2],p.v[3],clamp(d/110,2.2,6.5));
+  tour.dwell=9;
+}
+function endTour(){ if(tour) track('end_tour',{step:tour.i+1}); tour=null; document.body.classList.remove('tour'); $('#tour').hidden=true; }
+function togglePhoto(){ document.body.classList.toggle('photo'); track('photo_mode',{enabled:document.body.classList.contains('photo')}); }
+let toastT=0;
+function toast(msg){ const el=$('#toast'); el.innerHTML=''; el.textContent=msg; el.hidden=false; toastT=2.6; }
+function shareUrl(){
+  const fly=mode==='fly';
+  return location.origin+location.pathname+`#p=${camera.position.x.toFixed(0)},${camera.position.z.toFixed(0)},${Math.round(yaw*180/Math.PI)},${Math.round(pitch*180/Math.PI)},${HOUR},${fly?'v,'+camera.position.y.toFixed(0):'w'}`;
+}
+let urlT=0;
+function saveUrl(){
+  if(mode==='intro'||travel) return;
+  const h=shareUrl().slice(shareUrl().indexOf('#'));
+  if(h!==location.hash){ try{ history.replaceState(null,'',h); }catch(_){} }
+}
+function showLinkBox(u){
+  const el=$('#toast'); el.hidden=false; el.innerHTML='';
+  const lab=document.createElement('span'); lab.textContent='Copia il link:';
+  const inp=document.createElement('input'); inp.type='text'; inp.readOnly=true; inp.value=u; inp.id='linkField';
+  el.appendChild(lab); el.appendChild(inp); inp.focus(); inp.select(); toastT=14;
+}
+function copyLink(){
+  const u=shareUrl();
+  track('share_link');
+  const fallback=()=>{
+    let ok=false;
+    try{ const t=document.createElement('textarea'); t.value=u; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); ok=document.execCommand('copy'); document.body.removeChild(t); }catch(_){}
+    ok?toast('Link copiato'):showLinkBox(u);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(()=>toast('Link copiato'),fallback);
+  else fallback();
+}
+function applyHash(){
+  const m=(location.hash||'').match(/^#p=(-?\d+),(-?\d+),(-?\d+),(-?\d+),(\w+),(w|v)(?:,(-?\d+))?/);
+  if(!m) return false;
+  if(HOURS[m[5]]) setHour(m[5]);
+  hideIntro(); yaw=+m[3]*Math.PI/180; pitch=+m[4]*Math.PI/180;
+  if(m[6]==='v'){ setMode('fly',true); camera.position.set(+m[1],+(m[7]||250),+m[2]); P.x=+m[1]; P.z=+m[2]; P.fy=+(m[7]||250); }
+  else { P.x=+m[1]; P.z=+m[2]; P.eye=groundH(P.x,P.z)+1.7; setMode('walk',true); camera.position.set(P.x,P.eye,P.z); }
+  return true;
 }
 
 /* ---------------- HUD drawing ---------------- */
@@ -1442,6 +1990,13 @@ function drawBigMap(){
       g.lineWidth=3.5; g.strokeStyle='rgba(248,244,232,.85)'; const oy=mapZoomed?-11:-7; g.strokeText(n,0,oy); g.fillStyle='#1c3a78'; g.fillText(n,0,oy); g.restore(); }
     g.restore();
   }
+  if(mapZoomed){
+    g.font='18px Marcellus, Georgia, serif'; g.textAlign='center'; g.textBaseline='middle';
+    const tag=(t,x,z,rot)=>{ const [px,py]=mapProj(x,z); g.save(); g.translate(px,py); let a=-NORTH+rot; if(a<-Math.PI/2) a+=Math.PI; g.rotate(a);
+      g.lineWidth=4; g.strokeStyle='rgba(248,242,226,.92)'; g.strokeText(t,0,0); g.fillStyle='#7c3d2b'; g.fillText(t,0,0); g.restore(); };
+    for(const v of XL){ const n=CARDO_NAMES[String(v)]; if(!n) continue; const [lo,hi]=clipLine(true,v); if(hi-lo<60) continue; tag(n[0],v,lerp(lo,hi,.24),Math.PI/2); }
+    for(const v of ZL){ const n=DECU_NAMES[String(v)]; if(!n) continue; const [lo,hi]=clipLine(false,v); if(hi-lo<60) continue; tag(n[0],lerp(lo,hi,.7),v,0); }
+  }
   drawLabels(g,true);
   const [x,y]=mapProj(camera.position.x,camera.position.z);
   g.save(); g.translate(x,y); g.rotate(-yaw-NORTH); g.fillStyle='#e0ad4f'; g.strokeStyle='#17140f'; g.lineWidth=3; g.beginPath(); g.moveTo(0,-16); g.lineTo(11,12); g.lineTo(0,6); g.lineTo(-11,12); g.closePath(); g.stroke(); g.fill(); g.restore();
@@ -1457,9 +2012,13 @@ function locate(){
   if(mode==='fly'&&camera.position.y-groundH(x,z)>60){ zone='In volo · '+Math.round(camera.position.y)+' m'; }
   if(best){ la=best.la; it=best.it; }
   else if(br){ la=br.b.la; it='Sull’Adige'; }
-  else if(cd<0&&Math.abs(z)<7){ la='Decumanus maximus'; it='Oggi Corso Porta Borsari e Corso Sant’Anastasia'; best=PLACES.find(p=>p.id==='decumanus'); }
-  else if(cd<0&&Math.abs(x-CARDO)<7&&z>0){ la='Cardo maximus'; it='Oggi Via Leoni e Via Cappello'; best=PLACES.find(p=>p.id==='cardo'); }
-  else if(cd<0){ la='Insulae'; it='Domus ad atrio, botteghe e case d’affitto'; }
+  else if(cd<0){
+    const st=streetAt(x,z);
+    if(st){ la=st[0]; it='Oggi ' + st[1];
+      if(Math.abs(z)<7) best=PLACES.find(p=>p.id==='decumanus');
+      else if(Math.abs(x-CARDO)<7&&z>0) best=PLACES.find(p=>p.id==='cardo'); }
+    else { la='Insulae'; it='Domus ad atrio, botteghe e case d’affitto'; }
+  }
   else if(riverDist(x,z)<70){ la='Athesis'; it='Il fiume Adige'; }
   else if(roadDist(x,z)<6){ const r=ROADS.reduce((a,r)=>{ let d=1e9; for(let i=0;i<r.pts.length-1;i++) d=Math.min(d,segDist(x,z,r.pts[i][0],r.pts[i][1],r.pts[i+1][0],r.pts[i+1][1])); return d<a[0]?[d,r]:a; },[1e9,null])[1]; la=r.la; it='Fuori le mura'; }
   else { la='Ager Veronensis'; it='La campagna divisa dalla centuriazione'; }
@@ -1471,6 +2030,26 @@ function locate(){
 
 /* ---------------- loop ---------------- */
 let sunExt=0;
+const LAMPS=[];
+function buildLamps(){ for(let i=0;i<6;i++){ const l=new T.PointLight(MC('#ff9c46').getHex(),0,26,1.8); l.visible=false; scene.add(l); LAMPS.push(l); } }
+const _lamp=[];
+function updateLamps(time){
+  const night=(HOURS[HOUR]||HOURS.giorno).lamp;
+  const flame=KINDS.flame&&KINDS.flame[1];
+  if(flame) flame.color.copy(MC('#ffb347')).multiplyScalar(night>0?1:.35);
+  if(FLAMEMESH) FLAMEMESH.visible=night>.15;
+  if(night<.15){ for(const l of LAMPS) l.visible=false; return; }
+  _lamp.length=0;
+  const cx=camera.position.x, cz=camera.position.z;
+  for(const t of TORCHES){ const d=(t[0]-cx)**2+(t[2]-cz)**2; if(d<3000) _lamp.push([d,t]); }
+  _lamp.sort((a,b)=>a[0]-b[0]);
+  for(let i=0;i<LAMPS.length;i++){
+    const e=_lamp[i];
+    if(!e){ LAMPS[i].visible=false; continue; }
+    const l=LAMPS[i]; l.visible=true; l.position.set(e[1][0],e[1][1],e[1][2]);
+    l.intensity=night*(3.4+Math.sin(time*9+e[1][0])*.5+Math.sin(time*13.7+e[1][2])*.35);
+  }
+}
 function sunFollow(cx,cz,ext){
   ext=Math.max(80,Math.round(ext/40)*40);
   if(ext!==sunExt){ const c=sun.shadow.camera; c.left=c.bottom=-ext; c.right=c.top=ext; c.updateProjectionMatrix(); sunExt=ext; }
@@ -1478,6 +2057,10 @@ function sunFollow(cx,cz,ext){
   sun.target.position.set(cx,0,cz); sun.position.set(cx+SUNDIR.x*900,SUNDIR.y*900,cz+SUNDIR.z*900); sun.target.updateMatrixWorld();
 }
 function update(dt,time){
+  if(tour&&!travel){ tour.dwell-=dt; if(tour.dwell<=0) tourNext(); else { yaw+=dt*.035; } }
+  urlT+=dt; if(urlT>1.2){ urlT=0; saveUrl(); }
+  updateSound(dt);
+  if(toastT>0){ toastT-=dt; if(toastT<=0) $('#toast').hidden=true; }
   if(travel){
     travel.t+=dt/travel.dur; const t=Math.min(1,travel.t), e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
     camera.position.lerpVectors(travel.from,travel.to,e); camera.position.y+=travel.lift*Math.sin(Math.PI*e);
@@ -1518,6 +2101,8 @@ function update(dt,time){
   const fwd=Math.min(alt*1.2,500);
   sunFollow(camera.position.x-Math.sin(yaw)*fwd,camera.position.z-Math.cos(yaw)*fwd,alt>40?clamp(alt*1.3,200,760):140);
   TEX.water.offset.x=time*.006; TEX.water.offset.y=time*.004;
+  for(const sh of WINDMATS) sh.uniforms.wTime.value=time;
+  updateLamps(time);
   updatePeople(dt,time); updateBoats(dt);
 }
 function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
@@ -1534,9 +2119,23 @@ function frame(now){
 }
 
 /* ---------------- boot ---------------- */
+let ENVRT=null;
+function buildEnvironment(){
+  const pm=new T.PMREMGenerator(renderer);
+  if(ENVRT) ENVRT.dispose();
+  const es=new T.Scene();
+  const s2=new T.Mesh(sky.geometry,sky.material.clone()); es.add(s2);
+  const ground=new T.Mesh(new T.SphereGeometry(7000,16,8,0,Math.PI*2,Math.PI/2,Math.PI/2),new T.MeshBasicMaterial({color:MC('#6f7a4e'),side:T.BackSide})); es.add(ground);
+  const rt=pm.fromScene(es,.03,1,20000);
+  ENVRT=rt; scene.environment=rt.texture; pm.dispose();
+}
 function init(){
   buildCity(); buildStreetDetail(); buildWalls(); buildArena(); buildTheatre(); buildTerrain(); buildBridges(); buildStreets(); buildCountry();
-  flushInstances(); buildPeople(); buildBoats(); buildMap(); buildPlaceList();
+  flushInstances(); buildPeople(); buildBoats(); buildLamps(); buildMap(); buildPlaceList(); buildStreetTable();
+  let h0='giorno'; try{ h0=localStorage.getItem('vr-hour')||'giorno'; }catch(_){}
+  setHour(HOURS[h0]?h0:'giorno');
+  applyHash();
+  $('#bSound').classList.toggle('on',SND.on);
   resize(); $('#loading').remove();
   requestAnimationFrame(t=>{ last=t; frame(t); });
 }
