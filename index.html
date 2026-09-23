@@ -183,6 +183,32 @@ function smooth(a,b,x){ const t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); }
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HQ = !matchMedia('(pointer: coarse)').matches;
 
+/* ---------------- anonymous analytics ---------------- */
+const ANALYTICS_ON=['doribene.it','www.doribene.it'].includes(location.hostname);
+const ANALYTICS_START=Date.now();
+const ANALYTICS_SESSION=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;
+let analyticsEnded=false;
+function analyticsDevice(){
+  if(matchMedia('(pointer: coarse)').matches) return Math.min(screen.width,screen.height)<600?'mobile':'tablet';
+  return 'desktop';
+}
+function analyticsViewport(){ const w=innerWidth; return w<480?'xs':w<768?'sm':w<1200?'md':'lg'; }
+function track(event,data={}){
+  if(!ANALYTICS_ON) return;
+  let referrer='direct';
+  try{ if(document.referrer) referrer=new URL(document.referrer).hostname||'direct'; }catch(_){}
+  const body=JSON.stringify({event,session:ANALYTICS_SESSION,referrer,device:analyticsDevice(),viewport:analyticsViewport(),language:(navigator.language||'').slice(0,12),data});
+  try{
+    if(navigator.sendBeacon&&['session_end','engagement'].includes(event)){
+      navigator.sendBeacon('/verona-romana/analytics.php',new Blob([body],{type:'text/plain;charset=UTF-8'}));
+    }else{
+      fetch('/verona-romana/analytics.php',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body,keepalive:true,credentials:'omit'}).catch(()=>{});
+    }
+  }catch(_){}
+}
+track('page_view');
+[15,60,180].forEach(seconds=>setTimeout(()=>track('engagement',{seconds}),seconds*1000));
+
 /* ---------------- random & noise ---------------- */
 let _s=20260921;
 function rnd(){ _s=(_s*16807)%2147483647; return (_s-1)/2147483646; }
@@ -1279,6 +1305,11 @@ const keys={};
 const KEYMAP={KeyW:'f',ArrowUp:'f',KeyS:'b',ArrowDown:'b',KeyA:'l',KeyD:'r',ArrowLeft:'tl',ArrowRight:'tr',ShiftLeft:'run',ShiftRight:'run',Space:'up',KeyE:'up',KeyQ:'down',KeyC:'down'};
 const joy={x:0,y:0,id:null};
 let locked=false;
+addEventListener('pagehide',()=>{
+  if(analyticsEnded) return;
+  analyticsEnded=true;
+  track('session_end',{seconds:Math.max(1,Math.round((Date.now()-ANALYTICS_START)/1000)),mode,lastPlace:lastPlace||'intro'});
+},{once:true});
 
 function goTo(x,z,lx,lz,dur){
   const from=camera.position.clone();
@@ -1311,7 +1342,7 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{ const k=KEYMAP[e.code]; if(k) keys[k]=0; });
 addEventListener('blur',()=>{ for(const k in keys) keys[k]=0; });
-function toggleFly(){ if(travel) return; hideIntro(); setMode(mode==='fly'?'walk':'fly'); }
+function toggleFly(){ if(travel) return; const from=mode; hideIntro(); setMode(mode==='fly'?'walk':'fly'); track('mode_change',{from,to:mode}); }
 
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{
@@ -1343,21 +1374,21 @@ canvas.addEventListener('touchstart',e=>{ for(const t of e.changedTouches) touch
 canvas.addEventListener('touchmove',e=>{ e.preventDefault(); for(const t of e.changedTouches){ const p=touchLook[t.identifier]; if(!p) continue; look((t.clientX-p[0])*.006,(t.clientY-p[1])*.006); p[0]=t.clientX; p[1]=t.clientY; } },{passive:false});
 canvas.addEventListener('touchend',e=>{ for(const t of e.changedTouches) delete touchLook[t.identifier]; });
 
-$('#bEnter').addEventListener('click',()=>{ goTo(-368,1,-300,0,3.2); });
-$('#bSoar').addEventListener('click',()=>{ hideIntro(); setMode('fly'); });
+$('#bEnter').addEventListener('click',()=>{ track('enter_city',{entry:'porta-borsari'}); goTo(-368,1,-300,0,3.2); });
+$('#bSoar').addEventListener('click',()=>{ track('soar_city'); hideIntro(); setMode('fly'); });
 $('#bFly').addEventListener('click',toggleFly);
 $('#bMap').addEventListener('click',()=>toggleMap(true));
 $('#mini').addEventListener('click',()=>toggleMap(true));
 $('#mapClose').addEventListener('click',()=>toggleMap(false));
 function toggleMap(show){
   const mv=$('#mapView'); const s=show===undefined?mv.hidden:show; mv.hidden=!s;
-  if(s){ if(document.pointerLockElement) document.exitPointerLock(); for(const k in keys) keys[k]=0; drawBigMap(); }
+  if(s){ track('open_map'); if(document.pointerLockElement) document.exitPointerLock(); for(const k in keys) keys[k]=0; drawBigMap(); }
 }
 const bigMap=$('#bigMap');
 let showModern=true; try{ showModern=localStorage.getItem('vr-modern')!=='0'; }catch(_){}
 $('#modernToggle').checked=showModern;
-$('#mapZoom').addEventListener('click',()=>{ setMapZoom(!mapZoomed); drawBigMap(); });
-$('#modernToggle').addEventListener('change',e=>{ showModern=e.target.checked; try{ localStorage.setItem('vr-modern',showModern?'1':'0'); }catch(_){} drawBigMap(); });
+$('#mapZoom').addEventListener('click',()=>{ setMapZoom(!mapZoomed); track('map_zoom',{zoomed:mapZoomed}); drawBigMap(); });
+$('#modernToggle').addEventListener('change',e=>{ showModern=e.target.checked; track('modern_map',{enabled:showModern}); try{ localStorage.setItem('vr-modern',showModern?'1':'0'); }catch(_){} drawBigMap(); });
 bigMap.addEventListener('click',e=>{
   const r=bigMap.getBoundingClientRect(); const [x,z]=mapUnproj((e.clientX-r.left)/r.width*MAPS,(e.clientY-r.top)/r.height*MAPS);
   toggleMap(false); goTo(x,z,x-Math.sin(yaw)*20,z-Math.cos(yaw)*20);
@@ -1366,7 +1397,7 @@ function buildPlaceList(){
   const ul=$('#placeList');
   for(const p of PLACES){ const li=document.createElement('li'); const b=document.createElement('button'); b.className='go'; b.type='button';
     b.innerHTML=`<span class="la"></span><span class="it2"></span><span class="arrow">VAI</span>`; b.querySelector('.la').textContent=p.la; b.querySelector('.it2').textContent=p.it;
-    b.addEventListener('click',()=>{ toggleMap(false); goTo(p.v[0],p.v[1],p.v[2],p.v[3]); }); li.appendChild(b); ul.appendChild(li); }
+    b.addEventListener('click',()=>{ track('select_place',{id:p.id,name:p.la}); toggleMap(false); goTo(p.v[0],p.v[1],p.v[2],p.v[3]); }); li.appendChild(b); ul.appendChild(li); }
 }
 
 /* ---------------- HUD drawing ---------------- */
@@ -1435,7 +1466,7 @@ function locate(){
   const key=zone+la;
   if(key!==lastPlace){ lastPlace=key; $('#zone').textContent=zone; $('#placeName').textContent=la; $('#placeSub').textContent=it; }
   const inf=best&&mode!=='intro'&&!(mode==='fly'&&camera.position.y-groundH(x,z)>60)?best.id:'';
-  if(inf!==infoFor){ infoFor=inf; const el=$('#info'); if(inf){ $('#infoLa').textContent=best.la; $('#infoIt').textContent=best.it; $('#infoTxt').textContent=best.txt; el.classList.remove('hide'); } else el.classList.add('hide'); }
+  if(inf!==infoFor){ infoFor=inf; const el=$('#info'); if(inf){ track('visit_place',{id:best.id,name:best.la}); $('#infoLa').textContent=best.la; $('#infoIt').textContent=best.it; $('#infoTxt').textContent=best.txt; el.classList.remove('hide'); } else el.classList.add('hide'); }
 }
 
 /* ---------------- loop ---------------- */
