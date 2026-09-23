@@ -48,6 +48,7 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
 #placeSub{margin:0;color:var(--muted);font-size:14.5px;line-height:1.35;}
 #compass{position:absolute;left:50%;top:calc(14px + var(--top));transform:translateX(-50%);width:300px;height:44px;padding:0;overflow:hidden;}
 #compassCv{display:block;width:300px;height:44px;}
+#mobileToolbar{display:none;}
 #nav{position:absolute;right:16px;top:calc(14px + var(--top));display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
 #mini{width:176px;height:176px;border-radius:50%;overflow:hidden;border:2px solid rgba(224,173,79,.65);box-shadow:0 6px 24px rgba(0,0,0,.35),inset 0 0 0 5px rgba(23,20,15,.55);cursor:pointer;background:#6f7d4a;}
 #miniCv{display:block;width:100%;height:100%;}
@@ -63,7 +64,8 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
 #tour #tourTxt{margin:0 0 12px;line-height:1.45;font-size:14.5px;}
 #tour .row{display:flex;gap:8px;}
 body.tour #hint,body.tour #info{display:none;}
-body.photo #place,body.photo #compass,body.photo #nav,body.photo #info,body.photo #hint,body.photo #tour,body.photo #joy{display:none!important;}
+body.tour #mobileToolbar,body.map-open #mobileToolbar{display:none;}
+body.photo #place,body.photo #compass,body.photo #mobileToolbar,body.photo #nav,body.photo #info,body.photo #hint,body.photo #tour,body.photo #joy{display:none!important;}
 #toast{display:flex;align-items:center;gap:8px;position:absolute;left:50%;top:calc(70px + var(--top));transform:translateX(-50%);background:var(--minium);color:#fff;font:500 13px var(--body);padding:8px 14px;border-radius:3px;z-index:6;}
 #toast input{font:400 12px var(--mono);width:min(46vw,340px);border:0;border-radius:2px;padding:5px 7px;background:#fff;color:#17140f;}
 #hint{position:absolute;left:50%;bottom:calc(16px + var(--bot));transform:translateX(-50%);padding:8px 12px;font:400 12px/1.5 var(--mono);color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 420px);}
@@ -110,22 +112,41 @@ body.photo #place,body.photo #compass,body.photo #nav,body.photo #info,body.phot
 .toggle em{color:var(--muted);font-style:normal;font-size:12.5px;}
 
 @media (max-width:760px){
-  #compass{top:auto;bottom:calc(16px + var(--bot));left:auto;right:16px;transform:none;width:200px;}
-  #compassCv{width:200px;}
+  #compass{display:none;}
   #hint{display:none;}
-  #mini{width:120px;height:120px;}
-  #place{max-width:calc(100% - 168px);padding:9px 12px;}
+  #mobileToolbar{position:absolute;z-index:5;right:12px;top:calc(12px + var(--top));display:flex;gap:7px;}
+  #mobileToolbar .btn{min-height:42px;background:rgba(23,20,15,.9);box-shadow:0 5px 18px rgba(0,0,0,.24);}
+  #mobileToolbar .symbol{font:500 17px/1 var(--mono);}
+  #nav{display:none;z-index:5;right:12px;top:calc(61px + var(--top));width:min(292px,calc(100% - 24px));padding:12px;box-sizing:border-box;background:rgba(23,20,15,.94);border:1px solid var(--line);border-radius:3px;box-shadow:0 12px 35px rgba(0,0,0,.38);gap:8px;}
+  body.mobile-menu #nav{display:flex;}
+  #mini{display:none;}
+  #nav .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:7px;}
+  #nav .row .btn{justify-content:center;white-space:normal;min-height:41px;text-align:center;}
+  #mobileEntryRow .btn{grid-column:1/-1;}
+  #nav #hours{grid-template-columns:repeat(4,minmax(0,1fr));max-width:none;}
+  #nav #hours .btn{padding:8px 3px;font-size:11.5px;}
+  #mobileEntryRow{display:grid!important;}
+  #place,#info,#intro{display:none;}
+  #bSound{grid-column:1/-1;}
+  body.mobile-info #place{display:block;z-index:3;top:calc(63px + var(--top));left:12px;right:12px;max-width:none;padding:9px 12px;}
+  body.mobile-info.intro-active #place{display:none;}
+  body.mobile-info #intro{display:block;z-index:3;left:12px;right:12px;bottom:calc(12px + var(--bot));width:auto;max-height:calc(100% - 138px - var(--top) - var(--bot));overflow:auto;padding:17px 18px 16px;}
+  body.mobile-info #info:not(.hide){display:block;z-index:3;left:12px;right:12px;bottom:calc(12px + var(--bot));width:auto;box-sizing:border-box;}
   #placeName{font-size:19px;}
   #placeSub{font-size:13px;}
-  #info{bottom:calc(72px + var(--bot));}
+  #intro h1{font-size:34px;}
+  #intro .keys,#intro .note{display:none;}
+  #intro .actions{margin-bottom:0;}
+  #tour{bottom:calc(12px + var(--bot));width:calc(100% - 24px);box-sizing:border-box;max-height:56vh;overflow:auto;}
   #mapView{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
   #mapSide{order:2;}
   #placeList{max-height:38vh;}
 }
+@media (min-width:761px){#mobileEntryRow{display:none!important;}}
 @media (prefers-reduced-motion:reduce){ #info{transition:none;} }
 </style>
 </head>
-<body>
+<body class="intro-active">
 <div id="stage">
   <canvas id="c" tabindex="0" aria-label="Vista 3D di Verona romana"></canvas>
 
@@ -137,8 +158,16 @@ body.photo #place,body.photo #compass,body.photo #nav,body.photo #info,body.phot
 
   <div id="compass" class="panel" aria-hidden="true"><canvas id="compassCv" width="600" height="88"></canvas></div>
 
+  <div id="mobileToolbar" aria-label="Comandi mobile">
+    <button class="btn" id="mobileInfoToggle" type="button" aria-expanded="false" aria-controls="place intro info"><span class="symbol" aria-hidden="true">i</span> Info</button>
+    <button class="btn" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="nav"><span class="symbol" aria-hidden="true">☰</span> Esplora</button>
+  </div>
+
   <aside id="nav">
     <div id="mini" title="Apri la mappa"><canvas id="miniCv" width="352" height="352"></canvas></div>
+    <div class="row" id="mobileEntryRow">
+      <button class="btn primary" id="bEnterMobile" type="button">Entra a piedi</button>
+    </div>
     <div class="row">
       <button class="btn" id="bMap" type="button">Mappa</button>
       <button class="btn" id="bFly" type="button">Volo</button>
@@ -1669,6 +1698,18 @@ const keys={};
 const KEYMAP={KeyW:'f',ArrowUp:'f',KeyS:'b',ArrowDown:'b',KeyA:'l',KeyD:'r',ArrowLeft:'tl',ArrowRight:'tr',ShiftLeft:'run',ShiftRight:'run',Space:'up',KeyE:'up',KeyQ:'down',KeyC:'down'};
 const joy={x:0,y:0,id:null};
 let locked=false;
+function setMobileMenu(open){
+  document.body.classList.toggle('mobile-menu',open);
+  $('#mobileMenuToggle').setAttribute('aria-expanded',open?'true':'false');
+  if(open&&document.body.classList.contains('mobile-info')) setMobileInfo(false);
+  track('mobile_menu',{open});
+}
+function setMobileInfo(open){
+  document.body.classList.toggle('mobile-info',open);
+  $('#mobileInfoToggle').setAttribute('aria-expanded',open?'true':'false');
+  if(open&&document.body.classList.contains('mobile-menu')) setMobileMenu(false);
+  track('mobile_info',{open});
+}
 addEventListener('pagehide',()=>{
   if(analyticsEnded) return;
   analyticsEnded=true;
@@ -1693,7 +1734,7 @@ function setMode(m,silent){
   if(m==='walk'&&!silent&&!travel){ const lx=P.x-Math.sin(yaw)*20, lz=P.z-Math.cos(yaw)*20; goTo(camera.position.x,camera.position.z,lx,lz,1.2); }
   if(m==='fly'){ P.x=camera.position.x; P.z=camera.position.z; P.fy=camera.position.y; }
 }
-function hideIntro(){ const el=$('#intro'); if(el.hidden) return; el.hidden=true; $('#hint').hidden=IS_TOUCH; if(IS_TOUCH) $('#joy').hidden=false; if(mode==='intro') mode='fly'; }
+function hideIntro(){ const el=$('#intro'); if(el.hidden) return; el.hidden=true; document.body.classList.remove('intro-active','mobile-info'); $('#mobileInfoToggle').setAttribute('aria-expanded','false'); $('#hint').hidden=IS_TOUCH; if(IS_TOUCH) $('#joy').hidden=false; if(mode==='intro') mode='fly'; }
 const IS_TOUCH=matchMedia('(pointer: coarse)').matches;
 
 addEventListener('keydown',e=>{
@@ -1706,7 +1747,11 @@ addEventListener('keydown',e=>{
   if(tour&&k) endTour();
   if(e.code==='KeyM'&&!e.repeat) toggleMap();
   if(!e.repeat&&['Digit1','Digit2','Digit3','Digit4'].includes(e.code)) setHour(['alba','giorno','tramonto','notte'][+e.code.slice(5)-1]);
-  if(e.code==='Escape'&&!$('#mapView').hidden) toggleMap(false);
+  if(e.code==='Escape'){
+    if(!$('#mapView').hidden) toggleMap(false);
+    else if(document.body.classList.contains('mobile-menu')) setMobileMenu(false);
+    else if(document.body.classList.contains('mobile-info')) setMobileInfo(false);
+  }
 });
 addEventListener('keyup',e=>{ const k=KEYMAP[e.code]; if(k) keys[k]=0; });
 addEventListener('blur',()=>{ for(const k in keys) keys[k]=0; });
@@ -1714,6 +1759,8 @@ function toggleFly(){ if(travel) return; const from=mode; hideIntro(); setMode(m
 
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{
+  if(document.body.classList.contains('mobile-menu')) setMobileMenu(false);
+  if(document.body.classList.contains('mobile-info')) setMobileInfo(false);
   if(e.pointerType==='touch') return;
   drag={x:e.clientX,y:e.clientY,moved:0}; canvas.setPointerCapture(e.pointerId);
 });
@@ -1745,20 +1792,24 @@ canvas.addEventListener('touchend',e=>{ for(const t of e.changedTouches) delete 
 
 $('#bEnter').addEventListener('click',()=>{ track('enter_city',{entry:'porta-borsari'}); goTo(-368,1,-300,0,3.2); });
 $('#bSoar').addEventListener('click',()=>{ track('soar_city'); hideIntro(); setMode('fly'); });
-$('#bFly').addEventListener('click',toggleFly);
-$('#bTour').addEventListener('click',startTour); $('#bTour2').addEventListener('click',startTour);
-$('#bLink').addEventListener('click',copyLink);
+$('#bEnterMobile').addEventListener('click',()=>{ setMobileMenu(false); track('enter_city',{entry:'porta-borsari',source:'mobile-menu'}); goTo(-368,1,-300,0,3.2); });
+$('#mobileMenuToggle').addEventListener('click',()=>setMobileMenu(!document.body.classList.contains('mobile-menu')));
+$('#mobileInfoToggle').addEventListener('click',()=>setMobileInfo(!document.body.classList.contains('mobile-info')));
+$('#bFly').addEventListener('click',()=>{ setMobileMenu(false); toggleFly(); });
+$('#bTour').addEventListener('click',()=>{ setMobileMenu(false); startTour(); }); $('#bTour2').addEventListener('click',startTour);
+$('#bLink').addEventListener('click',()=>{ setMobileMenu(false); copyLink(); });
 $('#bSound').addEventListener('click',()=>{ soundOn(!SND.on); track('sound_toggle',{enabled:SND.on}); });
 addEventListener('pointerdown',()=>{ if(SND.on) soundOn(true); },{once:true});
 addEventListener('keydown',()=>{ if(SND.on) soundOn(true); },{once:true});
 $('#tourNext').addEventListener('click',()=>{ if(tour){ track('tour_next',{step:tour.i+1}); tour.dwell=0; if(!travel) tourNext(); } });
 $('#tourEnd').addEventListener('click',endTour);
 document.querySelectorAll('#hours .btn').forEach(b=>b.addEventListener('click',()=>{ setHour(b.dataset.h); track('time_change',{hour:b.dataset.h}); }));
-$('#bMap').addEventListener('click',()=>toggleMap(true));
+$('#bMap').addEventListener('click',()=>{ setMobileMenu(false); toggleMap(true); });
 $('#mini').addEventListener('click',()=>toggleMap(true));
 $('#mapClose').addEventListener('click',()=>toggleMap(false));
 function toggleMap(show){
   const mv=$('#mapView'); const s=show===undefined?mv.hidden:show; mv.hidden=!s;
+  document.body.classList.toggle('map-open',s);
   if(s){ track('open_map'); if(document.pointerLockElement) document.exitPointerLock(); for(const k in keys) keys[k]=0; drawBigMap(); }
 }
 const bigMap=$('#bigMap');
