@@ -49,9 +49,13 @@ kbd{font:500 11px/1 var(--mono);border:1px solid var(--line);border-bottom-width
 #compass{position:absolute;left:50%;top:calc(14px + var(--top));transform:translateX(-50%);width:300px;height:44px;padding:0;overflow:hidden;}
 #compassCv{display:block;width:300px;height:44px;}
 #mobileToolbar{display:none;}
+#mobileOnlineBadge{min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--ochre);color:var(--ink);font:700 10px/17px var(--mono);text-align:center;}
 #nav{position:absolute;right:16px;top:calc(14px + var(--top));display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
 #mini{width:176px;height:176px;border-radius:50%;overflow:hidden;border:2px solid rgba(224,173,79,.65);box-shadow:0 6px 24px rgba(0,0,0,.35),inset 0 0 0 5px rgba(23,20,15,.55);cursor:pointer;background:#6f7d4a;}
 #miniCv{display:block;width:100%;height:100%;}
+#onlineStatus{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--panel);border:1px solid var(--line);border-radius:3px;font:500 12px/1 var(--mono);color:var(--parch);}
+#onlineStatus .dot{width:7px;height:7px;border-radius:50%;background:#72c58b;box-shadow:0 0 0 3px rgba(114,197,139,.14);}
+#onlineStatus strong{color:var(--ochre);font-weight:500;}
 #nav .row{display:flex;gap:6px;}
 #info{position:absolute;right:16px;bottom:calc(16px + var(--bot));width:min(350px,calc(100% - 32px));padding:14px 16px 15px;transition:opacity .35s ease, transform .35s ease;}
 #info.hide{opacity:0;transform:translateY(8px);pointer-events:none;}
@@ -120,6 +124,7 @@ body.photo #place,body.photo #compass,body.photo #mobileToolbar,body.photo #nav,
   #nav{display:none;z-index:5;right:12px;top:calc(61px + var(--top));width:min(292px,calc(100% - 24px));padding:12px;box-sizing:border-box;background:rgba(23,20,15,.94);border:1px solid var(--line);border-radius:3px;box-shadow:0 12px 35px rgba(0,0,0,.38);gap:8px;}
   body.mobile-menu #nav{display:flex;}
   #mini{display:none;}
+  #onlineStatus{align-self:stretch;justify-content:center;}
   #nav .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:7px;}
   #nav .row .btn{justify-content:center;white-space:normal;min-height:41px;text-align:center;}
   #mobileEntryRow .btn{grid-column:1/-1;}
@@ -160,11 +165,12 @@ body.photo #place,body.photo #compass,body.photo #mobileToolbar,body.photo #nav,
 
   <div id="mobileToolbar" aria-label="Comandi mobile">
     <button class="btn" id="mobileInfoToggle" type="button" aria-expanded="false" aria-controls="place intro info"><span class="symbol" aria-hidden="true">i</span> Info</button>
-    <button class="btn" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="nav"><span class="symbol" aria-hidden="true">☰</span> Esplora</button>
+    <button class="btn" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="nav"><span class="symbol" aria-hidden="true">☰</span> Esplora <span id="mobileOnlineBadge" hidden>1</span></button>
   </div>
 
   <aside id="nav">
     <div id="mini" title="Apri la mappa"><canvas id="miniCv" width="352" height="352"></canvas></div>
+    <div id="onlineStatus" hidden><span class="dot" aria-hidden="true"></span><span><strong id="onlineCount">1</strong> <span id="onlineLabel">persona online</span></span></div>
     <div class="row" id="mobileEntryRow">
       <button class="btn primary" id="bEnterMobile" type="button">Entra a piedi</button>
     </div>
@@ -265,6 +271,7 @@ const HQ = !matchMedia('(pointer: coarse)').matches;
 
 /* ---------------- anonymous analytics ---------------- */
 const ANALYTICS_ON=['doribene.it','www.doribene.it'].includes(location.hostname);
+const PRESENCE_ON=ANALYTICS_ON;
 const ANALYTICS_START=Date.now();
 const ANALYTICS_SESSION=crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;
 let analyticsEnded=false;
@@ -1710,6 +1717,111 @@ function setMobileInfo(open){
   if(open&&document.body.classList.contains('mobile-menu')) setMobileMenu(false);
   track('mobile_info',{open});
 }
+
+/* ---------------- anonymous live presence ---------------- */
+const PRESENCE_COLORS=['#e0ad4f','#c65a3a','#4f8c78','#6787b7','#9b6aa0','#d58b52'];
+const remoteVisitors=new Map();
+const presenceLabelTextures=new Map();
+const remoteRoot=new T.Group(); remoteRoot.name='Visitatori online'; scene.add(remoteRoot);
+let presenceStarted=false, presenceBusy=false, presenceLastOk=0, presenceSeenTracked=false;
+function presenceColor(index){ return PRESENCE_COLORS[Math.abs(Number(index)||0)%PRESENCE_COLORS.length]; }
+function presenceLabelTexture(colorIndex){
+  const key=Math.abs(Number(colorIndex)||0)%PRESENCE_COLORS.length;
+  if(presenceLabelTextures.has(key)) return presenceLabelTextures.get(key);
+  const c=document.createElement('canvas'); c.width=256; c.height=64; const g=c.getContext('2d'), color=presenceColor(key);
+  g.fillStyle='rgba(23,20,15,.9)'; g.strokeStyle=color; g.lineWidth=3;
+  g.fillRect(2,2,252,60); g.strokeRect(2,2,252,60);
+  g.fillStyle=color; g.beginPath(); g.arc(31,32,9,0,7); g.fill();
+  g.fillStyle='#f1e7d0'; g.font='500 25px "IBM Plex Mono", monospace'; g.textAlign='left'; g.textBaseline='middle'; g.fillText('ONLINE',54,33);
+  const texture=new T.CanvasTexture(c); texture.encoding=T.sRGBEncoding; texture.needsUpdate=true; presenceLabelTextures.set(key,texture); return texture;
+}
+function makeRemoteVisitor(id,colorIndex){
+  const color=presenceColor(colorIndex), group=new T.Group();
+  const cloth=new T.MeshStandardMaterial({color:MC(color),roughness:.86,metalness:0,emissive:MC(color).multiplyScalar(.08),emissiveIntensity:.45});
+  const skin=new T.MeshStandardMaterial({color:MC('#c79772'),roughness:.9});
+  const glow=new T.MeshBasicMaterial({color:MC(color),transparent:true,opacity:.9,depthWrite:false,depthTest:false});
+  const body=new T.Mesh(new T.CylinderGeometry(.23,.34,1.05,8),cloth); body.position.y=.67; body.castShadow=true;
+  const head=new T.Mesh(new T.SphereGeometry(.22,10,8),skin); head.position.y=1.38; head.castShadow=true;
+  const ring=new T.Mesh(new T.TorusGeometry(.5,.052,6,20),glow); ring.position.y=1.92; ring.rotation.x=Math.PI/2; ring.renderOrder=20;
+  const beacon=new T.Mesh(new T.SphereGeometry(.15,8,6),glow); beacon.position.y=1.92; beacon.renderOrder=20;
+  const label=new T.Sprite(new T.SpriteMaterial({map:presenceLabelTexture(colorIndex),transparent:true,depthTest:false,depthWrite:false})); label.position.y=2.42; label.scale.set(2.4,.6,1); label.renderOrder=21;
+  group.add(body,head,ring,beacon,label); group.name='Visitatore '+id.slice(0,4); group.userData={ring,beacon,label};
+  remoteRoot.add(group);
+  return {id,color:colorIndex,group,target:new T.Vector3(),targetYaw:0,mode:'walk'};
+}
+function setPresenceCount(count){
+  const n=Math.max(1,Number(count)||1);
+  $('#onlineCount').textContent=String(n);
+  $('#onlineLabel').textContent=n===1?'persona online':'persone online';
+  $('#onlineStatus').hidden=false;
+  $('#mobileOnlineBadge').textContent=String(Math.min(n,99));
+  $('#mobileOnlineBadge').hidden=false;
+  if(n>1&&!presenceSeenTracked){ presenceSeenTracked=true; track('presence_seen',{count:n}); }
+}
+function clearRemoteVisitors(hideStatus){
+  for(const visitor of remoteVisitors.values()) remoteRoot.remove(visitor.group);
+  remoteVisitors.clear();
+  if(hideStatus){ $('#onlineStatus').hidden=true; $('#mobileOnlineBadge').hidden=true; }
+}
+function syncPresence(payload){
+  if(!payload||payload.ok!==true||!Array.isArray(payload.visitors)) return;
+  presenceLastOk=Date.now(); setPresenceCount(payload.count);
+  const seen=new Set();
+  for(const data of payload.visitors){
+    if(!data||typeof data.id!=='string'||data.mode==='intro') continue;
+    const x=Number(data.x), z=Number(data.z), y=Number(data.y);
+    if(!Number.isFinite(x)||!Number.isFinite(z)||!Number.isFinite(y)) continue;
+    seen.add(data.id);
+    let visitor=remoteVisitors.get(data.id);
+    if(!visitor){ visitor=makeRemoteVisitor(data.id,data.color); remoteVisitors.set(data.id,visitor); }
+    const floor=groundH(x,z)+.04;
+    visitor.target.set(x,data.mode==='fly'?Math.max(floor,y-1.1):floor,z);
+    visitor.targetYaw=Number.isFinite(Number(data.yaw))?Number(data.yaw):0;
+    visitor.mode=data.mode;
+    if(visitor.group.position.lengthSq()===0) visitor.group.position.copy(visitor.target);
+  }
+  for(const [id,visitor] of remoteVisitors){ if(!seen.has(id)){ remoteRoot.remove(visitor.group); remoteVisitors.delete(id); } }
+  if(!$('#mapView').hidden) drawBigMap();
+}
+function presencePayload(action){
+  return JSON.stringify({action,session:ANALYTICS_SESSION,x:camera.position.x,y:camera.position.y,z:camera.position.z,yaw,mode});
+}
+function pingPresence(){
+  if(!PRESENCE_ON||!presenceStarted||presenceBusy||document.hidden) return;
+  presenceBusy=true;
+  const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),3500);
+  fetch('/verona-romana/presence.php',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:presencePayload('ping'),credentials:'omit',cache:'no-store',signal:controller.signal})
+    .then(response=>response.ok?response.json():Promise.reject(new Error('presence')))
+    .then(syncPresence).catch(()=>{}).finally(()=>{ clearTimeout(timeout); presenceBusy=false; });
+}
+function startPresence(){
+  if(!PRESENCE_ON||presenceStarted) return;
+  presenceStarted=true; pingPresence(); setInterval(pingPresence,4000);
+  addEventListener('visibilitychange',()=>{ if(!document.hidden) pingPresence(); });
+}
+function leavePresence(){
+  if(!PRESENCE_ON||!presenceStarted) return;
+  const body=presencePayload('leave');
+  try{ if(navigator.sendBeacon) navigator.sendBeacon('/verona-romana/presence.php',new Blob([body],{type:'text/plain;charset=UTF-8'})); }catch(_){}
+}
+function updateRemoteVisitors(dt,time){
+  const blend=1-Math.exp(-dt*4.2);
+  for(const visitor of remoteVisitors.values()){
+    visitor.group.position.lerp(visitor.target,blend);
+    let turn=visitor.targetYaw-visitor.group.rotation.y; while(turn>Math.PI) turn-=Math.PI*2; while(turn<-Math.PI) turn+=Math.PI*2;
+    visitor.group.rotation.y+=turn*blend;
+    const scale=visitor.mode==='fly'?1.65:1;
+    visitor.group.scale.setScalar(lerp(visitor.group.scale.x,scale,blend));
+    const distance=visitor.group.position.distanceTo(camera.position);
+    visitor.group.visible=distance>2.5;
+    visitor.group.userData.label.visible=distance>5;
+    const pulse=1+Math.sin(time*3+visitor.color)*.12;
+    visitor.group.userData.ring.scale.setScalar(pulse);
+    visitor.group.userData.beacon.material.opacity=.65+Math.sin(time*4+visitor.color)*.2;
+  }
+  if(presenceLastOk&&Date.now()-presenceLastOk>30000){ presenceLastOk=0; clearRemoteVisitors(true); }
+}
+addEventListener('pagehide',leavePresence,{once:true});
 addEventListener('pagehide',()=>{
   if(analyticsEnded) return;
   analyticsEnded=true;
@@ -2020,6 +2132,10 @@ function drawMini(){
   const px=camera.position.x, pz=camera.position.z;
   g.fillStyle='#8a9a5c'; g.fillRect(-R*1.5,-R*1.5,S*1.5,S*1.5);
   g.drawImage(MAP,(-px-1000)*sc,(-pz-1000)*sc,2000*sc,2000*sc);
+  for(const visitor of remoteVisitors.values()){
+    g.fillStyle=presenceColor(visitor.color); g.strokeStyle='rgba(23,20,15,.85)'; g.lineWidth=3;
+    g.beginPath(); g.arc((visitor.target.x-px)*sc,(visitor.target.z-pz)*sc,7,0,7); g.fill(); g.stroke();
+  }
   g.restore();
   g.fillStyle='rgba(23,20,15,.0)';
   // player
@@ -2049,6 +2165,11 @@ function drawBigMap(){
     for(const v of ZL){ const n=DECU_NAMES[String(v)]; if(!n) continue; const [lo,hi]=clipLine(false,v); if(hi-lo<60) continue; tag(n[0],lerp(lo,hi,.7),v,0); }
   }
   drawLabels(g,true);
+  for(const visitor of remoteVisitors.values()){
+    const [vx,vy]=mapProj(visitor.target.x,visitor.target.z);
+    g.fillStyle=presenceColor(visitor.color); g.strokeStyle='#17140f'; g.lineWidth=3;
+    g.beginPath(); g.arc(vx,vy,mapZoomed?9:7,0,7); g.fill(); g.stroke();
+  }
   const [x,y]=mapProj(camera.position.x,camera.position.z);
   g.save(); g.translate(x,y); g.rotate(-yaw-NORTH); g.fillStyle='#e0ad4f'; g.strokeStyle='#17140f'; g.lineWidth=3; g.beginPath(); g.moveTo(0,-16); g.lineTo(11,12); g.lineTo(0,6); g.lineTo(-11,12); g.closePath(); g.stroke(); g.fill(); g.restore();
   g.fillStyle='rgba(23,20,15,.8)'; g.beginPath(); g.arc(48,48,26,0,7); g.fill(); g.fillStyle='#e0ad4f'; g.font='24px Marcellus, Georgia, serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('N',48,50);
@@ -2154,7 +2275,7 @@ function update(dt,time){
   TEX.water.offset.x=time*.006; TEX.water.offset.y=time*.004;
   for(const sh of WINDMATS) sh.uniforms.wTime.value=time;
   updateLamps(time);
-  updatePeople(dt,time); updateBoats(dt);
+  updatePeople(dt,time); updateBoats(dt); updateRemoteVisitors(dt,time);
 }
 function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
 addEventListener('resize',resize);
@@ -2187,7 +2308,7 @@ function init(){
   setHour(HOURS[h0]?h0:'giorno');
   applyHash();
   $('#bSound').classList.toggle('on',SND.on);
-  resize(); $('#loading').remove();
+  resize(); $('#loading').remove(); startPresence();
   requestAnimationFrame(t=>{ last=t; frame(t); });
 }
 setTimeout(()=>{
