@@ -182,6 +182,7 @@ body.photo #place,body.photo #compass,body.photo #mobileToolbar,body.photo #nav,
       <button class="btn" id="bTour" type="button">Visita guidata</button>
       <button class="btn" id="bLink" type="button" title="Copia il link a questa veduta">Link</button>
       <button class="btn" id="bSound" type="button" title="Suono d’ambiente">Suono</button>
+      <button class="btn" id="bPost" type="button" title="Occlusione, alone e grana">Effetti</button>
     </div>
     <div class="row" id="hours">
       <button class="btn sm" data-h="alba" type="button">Alba</button>
@@ -258,6 +259,17 @@ body.photo #place,body.photo #compass,body.photo #mobileToolbar,body.photo #nav,
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/math/SimplexNoise.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/SSAOShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/SSAOPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script>
 (function(){
 'use strict';
@@ -330,8 +342,8 @@ function Lw(cx,cz,ry,lx,lz){ const c=Math.cos(ry), s=Math.sin(ry); return [cx+lx
 const yawFrom=(dx,dz)=>Math.atan2(-dx,-dz);
 
 /* ---------------- world layout ---------------- */
-const CITY=[[-323,408],[-323,-150],[-230,-198],[-5,-330],[114,-368],[258,-368],[335,-356],[398,-302],[418,-236],[416,-78],[395,-10],[355,55],[205,280],[115,408]];
-const NORTH=35*Math.PI/180; // Roman grid is turned 55° from true north
+const CITY=[[-323.2,410],[-323.2,-153.1],[-228.1,-200.2],[-1.8,-330],[117.5,-366.9],[261.5,-365.5],[338.4,-352.8],[400.9,-298.2],[420.2,-232],[416.7,-74],[395.1,-6.2],[354.5,58.4],[202.3,281.9],[111.1,410]];
+const NORTH=35.5485*Math.PI/180; // the grid, measured on Corso Porta Borsari, Corso Sant'Anastasia, Via Cappello and Via Leoni
 const CC=[CITY.reduce((a,p)=>a+p[0],0)/CITY.length, CITY.reduce((a,p)=>a+p[1],0)/CITY.length];
 function cityDist(x,z){
   let d=1e9;
@@ -339,7 +351,7 @@ function cityDist(x,z){
   return inPoly(x,z,CITY)?-d:d;
 }
 const riverCurve=new T.CatmullRomCurve3([
-  [-905,-2440],[-802,-2337],[-694,-2200],[-593,-1980],[-520,-1764],[-476,-1624],[-459,-1441],[-485,-1272],[-595,-1065],[-686,-953],[-803,-847],[-876,-753],[-920,-665],[-957,-531],[-954,-399],[-932,-280],[-906,-227],[-879,-195],[-838,-170],[-758,-122],[-654,-110],[-532,-118],[-431,-146],[-249,-245],[-28,-379],[86,-417],[186,-421],[258,-419],[345,-406],[393,-385],[428,-356],[447,-317],[469,-236],[472,-160],[468,-78],[444,-4],[399,80],[247,308],[131,469],[-22,657],[-157,813],[-247,889],[-366,979],[-507,1075],[-611,1140],[-830,1266],[-980,1340],[-1220,1461],[-1500,1600]
+  [-1133,-2699],[-1028,-2594],[-993,-2558],[-969,-2534],[-882,-2446],[-842,-2407],[-780,-2342],[-756,-2317],[-724,-2284],[-673,-2204],[-644,-2159],[-574,-1983],[-503,-1766],[-461,-1626],[-445,-1537],[-445,-1443],[-454,-1361],[-473,-1274],[-585,-1069],[-676,-957],[-795,-852],[-846,-801],[-869,-759],[-873,-751],[-886,-730],[-914,-671],[-951,-538],[-950,-405],[-929,-287],[-904,-233],[-877,-201],[-836,-175],[-757,-127],[-653,-114],[-530,-121],[-430,-148],[-246,-245],[-24,-377],[90,-414],[118,-415],[262,-414],[349,-400],[397,-378],[432,-350],[450,-310],[471,-229],[469,-71],[444,3],[399,87],[244,313],[127,473],[-28,659],[-43,679],[-165,814],[-245,880],[-255,889],[-310,933],[-376,977],[-417,1005],[-518,1072],[-622,1137],[-842,1260],[-993,1332],[-1170,1409],[-1192,1417],[-1234,1451]
 ].map(p=>new T.Vector3(p[0],0,p[1])),false,'catmullrom',0.5);
 const RIV=riverCurve.getSpacedPoints(900).map(v=>[v.x,v.z]);
 function riverDist(x,z){
@@ -349,11 +361,11 @@ function riverDist(x,z){
   for(let i=a;i<=b;i++){ const q=segDist(x,z,RIV[i][0],RIV[i][1],RIV[i+1][0],RIV[i+1][1]); if(q<md) md=q; }
   return md;
 }
-const AR={x:-447,z:310,Ao:61.5,Bo:76,Ai:22,Bi:37.5,So:59.5,Sb:74,S:30,N:160};
-const TH={x:560,z:-130,r0:11,r1:56,S:24,ry:-1.425}; TH.c=Math.cos(TH.ry); TH.s=Math.sin(TH.ry);
+const AR={x:-449.7,z:308.3,Ao:61.5,Bo:76,Ai:22,Bi:37.5,So:59.5,Sb:74,S:30,N:160};
+const TH={x:581.2,z:-118.7,r0:11,r1:56,S:24,ry:-1.4346}; TH.c=Math.cos(TH.ry); TH.s=Math.sin(TH.ry);
 function thLocal(x,z){ const wx=x-TH.x, wz=z-TH.z; return [wx*TH.c-wz*TH.s, wx*TH.s+wz*TH.c]; }
-const HORREA=[-270,445,-70,545];
-const ISLE={x:480,z:-118,a:12,b:48};
+const HORREA=[-274.2,442.4,-75.2,544.3];
+const ISLE={x:481.1,z:-113.4,a:12,b:48};
 
 function terrainH(x,z){
   const cd=cityDist(x,z), rd=riverDist(x,z);
@@ -362,7 +374,7 @@ function terrainH(x,z){
   const ea=((x-AR.x)/AR.Ao)**2+((z-AR.z)/AR.Bo)**2; h*=smooth(1.2,3.2,ea);
   if(x>HORREA[0]-40&&x<HORREA[2]+40&&z>HORREA[1]-40&&z<HORREA[3]+40) h*=.2;
   const tn=x*.574-z*.819;
-  let hill=50*Math.exp(-(((x-720)/230)**2+((z+160)/300)**2))+34*Math.exp(-(((x-950)/380)**2+((z-80)/420)**2))+26*Math.exp(-(((x-300)/420)**2+((z+760)/260)**2));
+  let hill=50*Math.exp(-(((x-721.5)/230)**2+((z+153.1)/300)**2))+34*Math.exp(-(((x-950.7)/380)**2+((z+70.9)/420)**2))+26*Math.exp(-(((x-307.3)/420)**2+((z+757.1)/260)**2));
   const nk=smooth(650,2600,tn);
   hill+=nk*(110+520*smooth(1700,4200,tn))*(.4+.9*ridge(x*.0011+3.1,z*.0011));
   const r=Math.hypot(x,z);
@@ -393,10 +405,10 @@ function theatreH(x,z){
   return null;
 }
 const BRIDGES=[
-  {la:'Ponte occidentale', ax:-187,az:-226.5,bx:-187,bz:-350,w:8,hump:3},
-  {la:'Pons Marmoreus', ax:421,az:-220,bx:548,bz:-220,w:8,hump:3.5},
-  {la:'Pons Postumius', ax:392,az:0,bx:528,bz:0,w:9,hump:3},
-  {la:'Ponte orientale', ax:217.8,az:266.9,bx:334.3,bz:344.6,w:8,hump:3},
+  {la:'Ponte occidentale', ax:-184.8,az:-228.3,bx:-183.6,bz:-351.8,w:8,hump:3},
+  {la:'Pons Marmoreus', ax:423.1,az:-216,bx:550.1,bz:-214.7,w:8,hump:3.5},
+  {la:'Pons Postumius', ax:392,az:3.8,bx:528,bz:5.1,w:9,hump:3},
+  {la:'Ponte orientale', ax:215.2,az:269,bx:331,bz:347.8,w:8,hump:3},
 ];
 BRIDGES.forEach(b=>{ b.L=Math.hypot(b.bx-b.ax,b.bz-b.az); b.ux=(b.bx-b.ax)/b.L; b.uz=(b.bz-b.az)/b.L; b.h0=terrainH(b.ax,b.az); b.h1=terrainH(b.bx,b.bz); });
 const deckH=(b,t)=>lerp(b.h0,b.h1,t)+b.hump*Math.sin(Math.PI*t)+.1;
@@ -435,10 +447,10 @@ function sunFrom(bearing,elev){
   SUNDIR.set(ce*(nx*Math.cos(b)+ex*Math.sin(b)), Math.sin(e), ce*(nz*Math.cos(b)+ez*Math.sin(b))).normalize();
 }
 const HOURS={
-  alba:{la:'Alba',b:76,e:9,sun:'#ffbe82',si:1.9,hemi:.3,top:'#3d6ea6',hor:'#f2c194',fog:'#eec7a0',exp:1.0,water:'#4b6f7e',glow:[1,.72,.45],night:0,lamp:.25,far:2600},
-  giorno:{la:'Giorno',b:186,e:58,sun:'#fff0d6',si:2.35,hemi:.35,top:'#5b8cc6',hor:'#dcd8c6',fog:'#dcd8c6',exp:.95,water:'#40707c',glow:[1,.88,.66],night:0,lamp:0,far:3700},
-  tramonto:{la:'Tramonto',b:286,e:7,sun:'#ff9d55',si:2.0,hemi:.28,top:'#2e5f97',hor:'#f0a163',fog:'#e7b189',exp:1.0,water:'#54666f',glow:[1,.62,.34],night:0,lamp:.55,far:2400},
-  notte:{la:'Notte',b:130,e:42,sun:'#b9c9e8',si:.32,hemi:.1,top:'#07132a',hor:'#17253c',fog:'#121e33',exp:1.25,water:'#16283a',glow:[.8,.86,1],night:1,lamp:1,far:2000}
+  alba:{la:'Alba',win:0,cloud:.6,cLit:'#ffd9b4',cDark:'#8a7b86',b:76,e:9,sun:'#ffbe82',si:1.9,hemi:.3,top:'#3d6ea6',hor:'#f2c194',fog:'#eec7a0',exp:1.0,water:'#4b6f7e',glow:[1,.72,.45],night:0,lamp:.25,far:2600},
+  giorno:{la:'Giorno',win:0,cloud:.5,cLit:'#ffffff',cDark:'#93a0ae',b:186,e:58,sun:'#fff0d6',si:2.35,hemi:.35,top:'#5b8cc6',hor:'#dcd8c6',fog:'#dcd8c6',exp:.95,water:'#40707c',glow:[1,.88,.66],night:0,lamp:0,far:3700},
+  tramonto:{la:'Tramonto',win:.16,cloud:.62,cLit:'#ffc089',cDark:'#6f5f74',b:286,e:7,sun:'#ff9d55',si:2.0,hemi:.28,top:'#2e5f97',hor:'#f0a163',fog:'#e7b189',exp:1.0,water:'#54666f',glow:[1,.62,.34],night:0,lamp:.55,far:2400},
+  notte:{la:'Notte',win:.7,cloud:.35,cLit:'#5d6f8c',cDark:'#1a2437',b:130,e:42,sun:'#b9c9e8',si:.32,hemi:.1,top:'#07132a',hor:'#17253c',fog:'#121e33',exp:1.25,water:'#16283a',glow:[.8,.86,1],night:1,lamp:1,far:2000}
 };
 let HOUR='giorno';
 function setHour(k){
@@ -448,10 +460,11 @@ function setHour(k){
   hemiLight.color.copy(MC(k==='notte'?'#8ea6c8':'#e2ebf2')); hemiLight.groundColor.copy(MC(k==='notte'?'#2a2f35':'#86714c'));
   sky.material.uniforms.top.value.copy(MC(h.top)); sky.material.uniforms.hor.value.copy(MC(h.hor));
   sky.material.uniforms.night.value=h.night; sky.material.uniforms.glow.value.setRGB(h.glow[0],h.glow[1],h.glow[2]);
+  sky.material.uniforms.cloud.value=h.cloud; sky.material.uniforms.cLit.value.copy(MC(h.cLit)); sky.material.uniforms.cDark.value.copy(MC(h.cDark));
   scene.fog.color.copy(MC(h.fog)); scene.fog.far=h.far; scene.background=scene.fog.color;
   renderer.toneMappingExposure=h.exp;
   if(WATERMAT) WATERMAT.color.copy(MC(h.water));
-  const lamp=KINDS.dark[1]; lamp.emissive.copy(MC('#ffb060')); lamp.emissiveIntensity=h.lamp*1.6;
+  const lamp=KINDS.dark[1]; lamp.emissive.copy(MC('#ffb060')); lamp.emissiveIntensity=(h.win!==undefined?h.win:h.lamp)*1.15;
   if(typeof buildEnvironment==='function'&&sky.material) buildEnvironment();
   document.querySelectorAll('#hours .btn').forEach(b=>b.classList.toggle('on',b.dataset.h===k));
   try{ localStorage.setItem('vr-hour',k); }catch(_){}
@@ -462,12 +475,46 @@ sun.castShadow=true; sun.shadow.mapSize.set(HQ?4096:2048,HQ?4096:2048); sun.shad
 scene.add(sun); scene.add(sun.target);
 const sky=new T.Mesh(new T.SphereGeometry(8500,32,16),new T.ShaderMaterial({
   side:T.BackSide,depthWrite:false,fog:false,
-  uniforms:{top:{value:MC('#5b8cc6')},hor:{value:HOR},sun:{value:SUNDIR},night:{value:0},glow:{value:new T.Color(1,.88,.66)}},
+  uniforms:{top:{value:MC('#5b8cc6')},hor:{value:HOR},sun:{value:SUNDIR},night:{value:0},glow:{value:new T.Color(1,.88,.66)},uTime:{value:0},cloud:{value:.55},cLit:{value:new T.Color(1,1,1)},cDark:{value:new T.Color(.55,.57,.62)}},
   vertexShader:'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:'uniform vec3 top;uniform vec3 hor;uniform vec3 sun;uniform float night;uniform vec3 glow;varying vec3 vP;float hsh(vec3 v){return fract(sin(dot(v,vec3(127.1,311.7,74.7)))*43758.5453);}void main(){vec3 d=normalize(vP);float h=d.y;vec3 c=mix(hor,top,pow(clamp(h,0.0,1.0),0.5));if(h<0.0)c=hor;float s=max(dot(d,sun),0.0);c+=glow*(pow(s,900.0)*2.0+pow(s,10.0)*.16);if(night>0.0&&h>0.0){vec3 g=floor(d*260.0);float st=hsh(g);c+=vec3(step(0.9988,st))*night*(0.6+0.8*hsh(g+7.0))*smoothstep(0.0,0.25,h);}gl_FragColor=vec4(c,1.0);\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n}'
+  fragmentShader:'uniform vec3 top;uniform vec3 hor;uniform vec3 sun;uniform float night;uniform vec3 glow;uniform float uTime;uniform float cloud;uniform vec3 cLit;uniform vec3 cDark;varying vec3 vP;float hsh(vec3 v){return fract(sin(dot(v,vec3(127.1,311.7,74.7)))*43758.5453);}float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);float a=hsh(vec3(i,0.0)),b=hsh(vec3(i+vec2(1.0,0.0),0.0)),c2=hsh(vec3(i+vec2(0.0,1.0),0.0)),d2=hsh(vec3(i+vec2(1.0,1.0),0.0));return mix(mix(a,b,f.x),mix(c2,d2,f.x),f.y);}float fb2(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*n2(p);p*=2.07;a*=0.5;}return v;}void main(){vec3 d=normalize(vP);float h=d.y;vec3 c=mix(hor,top,pow(clamp(h,0.0,1.0),0.5));if(h<0.0)c=hor;float s=max(dot(d,sun),0.0);c+=glow*(pow(s,900.0)*2.0+pow(s,10.0)*.16);if(cloud>0.0&&h>0.015){vec2 pp=clamp(d.xz/max(h,0.05)*3.0,vec2(-70.0),vec2(70.0))+vec2(uTime*0.012,uTime*0.004);float f=fb2(pp);float cov=smoothstep(0.45,0.78,f)*smoothstep(0.05,0.24,h);vec3 cc=mix(cDark,cLit,smoothstep(0.45,0.95,f));cc+=glow*pow(s,6.0)*0.25;c=mix(c,cc,cov*cloud);}if(night>0.0&&h>0.0){vec3 g=floor(d*260.0);float st=hsh(g);c+=vec3(step(0.9988,st))*night*(0.6+0.8*hsh(g+7.0))*smoothstep(0.0,0.25,h);}gl_FragColor=vec4(c,1.0);\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n}'
 }));
 sky.renderOrder=-1; scene.add(sky);
 
+/* ---------------- image finish: ambient occlusion, glow, grain ---------------- */
+const GRADE={
+  uniforms:{tDiffuse:{value:null},uVig:{value:.28},uGrain:{value:.016},uRes:{value:new T.Vector2(1,1)},uTime:{value:0}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:'uniform sampler2D tDiffuse;uniform float uVig;uniform float uGrain;uniform vec2 uRes;uniform float uTime;varying vec2 vUv;void main(){vec4 t=texture2D(tDiffuse,vUv);vec3 c=t.rgb;float d=distance(vUv,vec2(0.5));c*=1.0-uVig*smoothstep(0.34,0.86,d);float g=fract(sin(dot(vUv*uRes+vec2(uTime,uTime*1.7),vec2(12.9898,78.233)))*43758.5453)-0.5;c+=g*uGrain;c=clamp(c,0.0,1.0);c=mix(pow(c,vec3(0.41666))*1.055-vec3(0.055),c*12.92,step(c,vec3(0.0031308)));gl_FragColor=vec4(c,1.0);}'
+};
+let composer=null, ssaoPass=null, bloomPass=null, fxaaPass=null, gradePass=null, POST=true;
+try{ POST=localStorage.getItem('vr-post')!=='0'; }catch(_){}
+function buildComposer(){
+  if(!T.EffectComposer||!T.SSAOPass||!T.UnrealBloomPass||!T.ShaderPass) return false;
+  const w=innerWidth, h=innerHeight;
+  composer=new T.EffectComposer(renderer);
+  ssaoPass=new T.SSAOPass(scene,camera,w,h);
+  ssaoPass.kernelRadius=7; ssaoPass.minDistance=.0015; ssaoPass.maxDistance=.12;
+  composer.addPass(ssaoPass);
+  bloomPass=new T.UnrealBloomPass(new T.Vector2(w,h),.32,.75,.92); composer.addPass(bloomPass);
+  fxaaPass=new T.ShaderPass(T.FXAAShader); composer.addPass(fxaaPass);
+  gradePass=new T.ShaderPass(GRADE); gradePass.renderToScreen=true; composer.addPass(gradePass);
+  return true;
+}
+function sizeComposer(w,h){
+  if(!composer) return;
+  const pr=renderer.getPixelRatio();
+  composer.setSize(w,h);
+  if(ssaoPass) ssaoPass.setSize(w,h);
+  if(bloomPass) bloomPass.setSize(w,h);
+  if(fxaaPass) fxaaPass.material.uniforms.resolution.value.set(1/(w*pr),1/(h*pr));
+  if(gradePass) gradePass.material.uniforms.uRes.value.set(w,h);
+}
+function postOn(v){
+  POST=v; const b=document.getElementById('bPost'); if(b) b.classList.toggle('on',v);
+  try{ localStorage.setItem('vr-post',v?'1':'0'); }catch(_){}
+  if(v&&!composer){ if(buildComposer()) sizeComposer(innerWidth,innerHeight); else POST=false; }
+}
 /* ---------------- textures ---------------- */
 function cv(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return [c,c.getContext('2d')]; }
 function texOf(c,rep){ const t=new T.CanvasTexture(c); t.wrapS=t.wrapT=T.RepeatWrapping; t.anisotropy=renderer.capabilities.getMaxAnisotropy(); return t; }
@@ -655,6 +702,17 @@ const MAT={plaster:detailMat(TEX.stucco,5.5,'plaster',{},.12,.95), roof:detailMa
   wood:detailMat(TEX.wood,1.6,'flat',{},.3,.88), fresco:detailMat(TEX.fresco,4,'paint',{},.1,.6), garden:detailMat(TEX.grass,2.2,'flat',{},.25,.97)};
 G.amph=new T.LatheGeometry([[0,0],[.05,.03],[.1,.14],[.17,.36],[.2,.55],[.18,.7],[.09,.8],[.06,.94],[.075,1]].map(p=>new T.Vector2(p[0],p[1])),9);
 G.wheel=new T.CylinderGeometry(1,1,1,14).rotateZ(Math.PI/2);
+G.archRing=(()=>{ // voussoirs: a half ring, extruded through the wall
+  const sh=new T.Shape(); sh.absarc(0,0,1.22,0,Math.PI,false); sh.lineTo(-1,0); sh.absarc(0,0,1,Math.PI,0,true); sh.lineTo(1.22,0);
+  const g=new T.ExtrudeGeometry(sh,{depth:1,bevelEnabled:false,curveSegments:18}); g.translate(0,0,-.5); return g; })();
+G.archVoid=(()=>{ const sh=new T.Shape(); sh.absarc(0,0,1,0,Math.PI,false); sh.lineTo(-1,0); sh.lineTo(1,0);
+  const g=new T.ExtrudeGeometry(sh,{depth:1,bevelEnabled:false,curveSegments:18}); g.translate(0,0,-.5); return g; })();
+G.shaft=(()=>{ // turned shaft: entasis, neck, echinus
+  const pts=[[.99,0],[1.02,.015],[1.0,.045],[.99,.12],[.965,.36],[.925,.62],[.88,.84],[.865,.89],[.9,.915],[1.06,.955],[1.14,.985],[1.14,1]];
+  return new T.LatheGeometry(pts.map(q=>new T.Vector2(q[0],q[1])),16); })();
+G.statue=(()=>{ // a draped figure, turned
+  const pts=[[0,0],[.42,0],[.44,.06],[.4,.2],[.35,.42],[.3,.6],[.32,.7],[.34,.78],[.26,.86],[.13,.9],[.12,.94],[0,.96]];
+  return new T.LatheGeometry(pts.map(q=>new T.Vector2(q[0],q[1])),14); })();
 G.foliage=(()=>{ // crossed cards that read as a leafy mass
   const pos=[],uv=[],nor=[],idx=[];
   const quad=(ax,ay,az,bx,by,bz,nx,ny,nz)=>{ const b0=pos.length/3;
@@ -679,6 +737,7 @@ TEX.blades=(()=>{ const [c,g]=cv(64,64);  g.lineCap='round';
   const t=new T.CanvasTexture(c); t.encoding=T.sRGBEncoding; return t; })();
 const KINDS={
   plaster:[G.box,MAT.plaster,1], roof:[G.roof,MAT.roof,1], stone:[G.box,MAT.stone,1], brick:[G.box,MAT.brick,1], marble:[G.box,MAT.marble,1], pediment:[G.roof,MAT.marble,1],
+  arch:[G.archRing,MAT.stone,1], archDark:[G.archVoid,lam(),0], shaft:[G.shaft,MAT.column,1], statue:[G.statue,MAT.marble,1],
   flame:[G.cone,new T.MeshBasicMaterial({color:MC('#ffb347')}),0], wheel:[G.wheel,lam(),1], amph:[G.amph,lam(),1], tuft:[G.tuft,windMat(lam({map:TEX.blades,alphaTest:.45,side:T.DoubleSide,roughness:.95}),.05,true),0], flower:[G.ball,lam(),0],
   dark:[G.box,lam(),0], column:[G.cyl,MAT.column,1], tower:[G.cyl16,MAT.stone,1], trunk:[G.cyl,lam(),1], leaf:[G.foliage,windMat(lam({map:TEX.leaves,alphaTest:.42,side:T.DoubleSide,roughness:.92}),.035,false),1],
   cone:[G.cone,lam(),1], dome:[G.dome,lam(),1], garden:[G.box,MAT.garden,0], pool:[G.box,new T.MeshStandardMaterial({color:0xffffff,roughness:.09,metalness:0}),0],
@@ -762,7 +821,9 @@ function roofOver(x0,z0,x1,z1,y,col){
   const W=x1-x0, D=z1-z0;
   const rc=col.clone().multiplyScalar(.8), cx=(x0+x1)/2, cz=(z0+z1)/2;
   const band=jit('#d9cdb4',.04);
-  if(y>3){ put('stone',cx,y-.5,cz,W+.6,.5,D+.6,0,band); put('stone',cx,0,cz,W+.34,.55,D+.34,0,band); }
+  if(y>3){ put('stone',cx,y-.5,cz,W+.6,.5,D+.6,0,band); put('stone',cx,0,cz,W+.34,.55,D+.34,0,band);
+    if(HQ){ const rc2=col.clone().multiplyScalar(.92);
+      for(const sx of [-1,1]) for(const sz of [-1,1]) put('cone',cx+sx*(W/2+.2),y+.05,cz+sz*(D/2+.2),.3,.42,.3,0,rc2); } }
   if(W>=D){ const rh=Math.min(D*.3,5.5); put('roof',cx,y,cz,D+.9,rh,W+.9,Math.PI/2,col); put('roof',cx,y+rh-.18,cz,.55,.36,W+1,Math.PI/2,rc); }
   else { const rh=Math.min(W*.3,5.5); put('roof',cx,y,cz,W+.9,rh,D+.9,0,col); put('roof',cx,y+rh-.18,cz,.55,.36,D+1,0,rc); }
 }
@@ -775,7 +836,9 @@ function facade(x0,z0,x1,z1,side,h,opt){
   const P=(t)=>[ax+(bx-ax)*t, az+(bz-az)*t];
   const put2=(p,y,w,hh,win)=>{ const [cx,cz]=P(p/L);
     const B=(k,off,yy,ww,h2,d,c,slide=0)=>{ const q=P((p+slide)/L), x=q[0]+ox*off, z=q[1]+oz*off; along?put(k,x,yy,z,ww,h2,d,0,c):put(k,x,yy,z,d,h2,ww,0,c); };
-    B('dark',.06,y,w,hh,.25,DARK);
+    if(!win&&HQ){ const q=P(p/L), off=.06, ax2=q[0]+ox*off, az2=q[1]+oz*off;
+      archOpening(ax2,y,az2,w,hh+.5,.3,along?0:Math.PI/2,jit('#d6c9ae',.04)); }
+    else B('dark',.06,y,w,hh,.25,DARK);
     if(win){
       B('stone',.03,y-.15,w+.36,hh+.32,.2,FRAME); B('stone',.14,y-.22,w+.55,.12,.42,FRAME);
       if(HQ&&rnd()<.55){ const sc=jit(pick(['#6d5236','#7a5a3a','#5c6b52','#8a6a45']),.08);
@@ -799,7 +862,20 @@ function facade(x0,z0,x1,z1,side,h,opt){
   }
 }
 const DARK=MC(PAL.dark), FRAME=MC('#d9cdb3'), BEAM=MC('#6e4f33');
-function colPut(x,y,z,r,h,col){ put('marble',x,y,z,r*2.7,r*.8,r*2.7,0,col); put('column',x,y+r*.8,z,r,h-r*1.9,r,0,col); put('marble',x,y+h-r*1.1,z,r*2.9,r*1.1,r*2.9,0,col); }
+function archOpening(x,y,z,w,h,depth,ry,ringCol){
+  // a real arched void: square jambs, half-round head, ring of voussoirs
+  const r=w/2, spring=Math.max(.6,h-r);
+  put('dark',x,y,z,w,spring,depth,ry,DARK);
+  put('archDark',x,y+spring,z,r,r,depth,ry,DARK);
+  put('arch',x,y+spring,z,r,r,depth*.62,ry,ringCol||jit('#d8ccb2',.03));
+}
+function colPut(x,y,z,r,h,col){
+  put('marble',x,y,z,r*2.7,r*.55,r*2.7,0,col);                       // plinth
+  const sh=h-r*1.55;
+  if(HQ) put('shaft',x,y+r*.55,z,r*1.06,sh,r*1.06,rnd()*6,col);      // turned shaft with entasis and echinus
+  else put('column',x,y+r*.55,z,r,sh,r,0,col);
+  put('marble',x,y+r*.55+sh,z,r*2.9,r,r*2.9,0,col);                  // abacus
+}
 function colonnade(ax,az,bx,bz,step,h,r,col,y=0){
   const L=Math.hypot(bx-ax,bz-az), n=Math.max(1,Math.round(L/step));
   for(let i=0;i<=n;i++){ const t=i/n, x=ax+(bx-ax)*t, z=az+(bz-az)*t; colPut(x,y,z,r,h,col); colCirc(x,z,r); }
@@ -846,9 +922,11 @@ function domus(x0,z0,x1,z1,sides,shops){
       const dc=jit(pick(['#6a4d31','#7b5a38','#5d472f']),.07), th=jit('#c9bda2',.04);
       if(axis==='x'){ const mid=(a0+a1)/2, zc=(b0+b1)/2; box('plaster',a0,b0,mid-1.6,b1,0,h,wc,true); box('plaster',mid+1.6,b0,a1,b1,0,h,wc,true); put('dark',mid,h-1.1,zc,3.3,1.1,b1-b0-.1,0,wc);
         put('stone',mid,0,b0<z0+1?b0+.3:b1-.3,3.6,.16,.9,0,th);
+        put('arch',mid,h-2.7,zc,1.6,1.6,(b1-b0)*.6,0,jit('#d6c9ae',.04));
         for(const sd of [-1,1]) put('wood',mid+sd*1.42,0,zc,.16,h-1.2,1.5,0,dc); }
       else { const mid=(b0+b1)/2, xc=(a0+a1)/2; box('plaster',a0,b0,a1,mid-1.6,0,h,wc,true); box('plaster',a0,mid+1.6,a1,b1,0,h,wc,true); put('dark',xc,h-1.1,mid,a1-a0-.1,1.1,3.3,0,wc);
         put('stone',a0<x0+1?a0+.3:a1-.3,0,mid,.9,.16,3.6,0,th);
+        put('arch',xc,h-2.7,mid,1.6,1.6,(a1-a0)*.6,Math.PI/2,jit('#d6c9ae',.04));
         for(const sd of [-1,1]) put('wood',xc,0,mid+sd*1.42,1.5,h-1.2,.16,0,dc); }
     } else box('plaster',a0,b0,a1,b1,0,h,wc,true);
     roofOver(a0,b0,a1,b1,h,rc);
@@ -903,16 +981,16 @@ function temple(cx,cz,w,l,podH,colH,by,faceSouth,walk){
     put('marble',x0+t/2,podH,ccz,t,colH,cl,0,mb); colBox(x0,z0,x0+t,z1);
     put('marble',x1-t/2,podH,ccz,t,colH,cl,0,mb); colBox(x1-t,z0,x1,z1);
     for(const sd of [-1,1]){ const bw=(cw-4.4)/2; put('marble',cx+sd*(cw/2-bw/2),podH,fz,bw,colH,t,0,mb); colBox(cx+sd*(cw/2-bw/2)-bw/2,fz-t/2,cx+sd*(cw/2-bw/2)+bw/2,fz+t/2); }
-    put('marble',cx,podH+colH-1.1,fz,4.4,1.1,t,0,mb);
+    archOpening(cx,podH,fz,4.4,colH-.6,t*1.2,0,jit('#efe9dc',.02));
     put('fresco',x0+t,podH+.02,z0+t,.28,colH-1.4,cl-2*t,0,WHITE); put('fresco',x1-t-.28,podH+.02,z0+t,.28,colH-1.4,cl-2*t,0,WHITE);
     put('fresco',x0+t,podH+.02,(z0<fz?z1-t-.28:z0+t),cw-2*t,colH-1.4,.28,0,WHITE);
     floorTile(x0+t,z0+t,x1-t,z1-t,podH+.03);
     const gods=[['#efe9dc',2.6],['#e8dfcd',2.3],['#e3dccb',2.3]];
     for(let i=0;i<3;i++){ const gx=cx+(i-1)*(cw/3.4), gz=ccz-s*(cl/2-2.6), c=MC(gods[i][0]), hh=gods[i][1];
       put('marble',gx,podH,gz,2.1,1.1,1.6,0,mb);
-      put('column',gx,podH+1.1,gz,.42,hh*.62,.42,0,c); put('marble',gx,podH+1.1,gz,1.05,.5,.95,0,c);
-      put('leaf',gx,podH+1.1+hh*.62+.26,gz,.26,.3,.26,0,c);
-      for(const sd of [-1,1]) put('column',gx+sd*.5,podH+1.1+hh*.4,gz,.13,hh*.34,.13,0,c); }
+      put('statue',gx,podH+1.1,gz,hh*.42,hh,hh*.42,s>0?0:Math.PI,c);
+      put('leaf',gx,podH+1.1+hh*.95,gz,hh*.1,hh*.115,hh*.1,0,c);
+      for(const sd of [-1,1]) put('column',gx+sd*hh*.17,podH+1.1+hh*.5,gz+hh*.04,hh*.05,hh*.3,hh*.05,0,c); }
     put('stone',cx,podH,ccz+s*(cl/2-3.4),2.4,1.15,1.6,0,jit('#d7cbb0',.03));
   } else put('marble',cx,podH,ccz,cw,colH,cl,0,mb);
   const nF=w>24?6:4, r=w/(nF*6.2);
@@ -937,8 +1015,8 @@ function floorTile(x0,z0,x1,z1,y,rep){
 // street lines measured on today's centre (OSM), which still follows the Roman grid (~86 m insulae)
 // cardines: Via Catullo, Via Quattro Spade, Via Fama, Via Cappello (cardo maximus), Via Dante, Via Pescheria Vecchia, Via Duomo, Via S. Felicita, Via Ponte Pietra
 // decumani: Via Arcidiacono Pacifico, Via S. Mamaso, Via Emilei, C.so Porta Borsari (decumanus maximus), Via Pellicciai, Via Mazzini, Via Stella, Via Zambelli
-const CARDO=-17;
-const XL=[-272,-187,-104,CARDO,70,155,240,325,410], ZL=[-355,-270,-180,-90,0,87,175,265,350];
+const CARDO=-17.1;
+const XL=[-273,-186.3,-103.9,CARDO,68,152.8,239.9,325.6,400], ZL=[-355,-264.3,-177.4,-90.3,0,85.3,174.9,266.2,353.2];
 const hw=v=>(v===0||v===CARDO)?6:3.5;
 function clipLine(vertical,c){
   const hits=[];
@@ -951,26 +1029,26 @@ function clipLine(vertical,c){
 // Cardines and decumani are numbered by the usual archaeological convention; the modern streets on each line
 // were measured on today's map (OpenStreetMap).
 const CARDO_NAMES={
- '-272':['Cardo I','Via Valerio Catullo · Via Enrico Noris · Via Adua'],
- '-187':['Cardo II','Via Quattro Spade · Via San Cosimo · Via Scala'],
- '-104':['Cardo III','Via Fama · Via Quintino Sella · Via San Salvatore Vecchio'],
- '-17':['Cardo maximus','Via Cappello · Via Leoni · Via Sant’Egidio'],
- '70':['Cardo V','Via Dante Alighieri · Via Giuseppe Garibaldi · Via Rosa'],
- '155':['Cardo VI','Via Pescheria Vecchia · Via Arche Scaligere · Via Santa Maria Antica'],
- '240':['Cardo VII','Via Duomo · Via San Pietro Martire · Via Abramo Massalongo'],
- '325':['Cardo VIII','Via Santa Felicita · Vicolo Accoliti'],
- '410':['Cardo IX','Via Ponte Pietra']
+ '-273':['Cardo I','Via Valerio Catullo · Via Enrico Noris · Via Adua'],
+ '-186.3':['Cardo II','Via Quattro Spade · Via San Cosimo · Via Scala'],
+ '-103.9':['Cardo III','Via Fama · Via Quintino Sella · Via San Salvatore Vecchio'],
+ '-17.1':['Cardo maximus','Via Cappello · Via Leoni · Via Sant’Egidio'],
+ '68':['Cardo V','Via Dante Alighieri · Via Giuseppe Garibaldi · Via Rosa'],
+ '152.8':['Cardo VI','Via Pescheria Vecchia · Via Arche Scaligere · Via Santa Maria Antica'],
+ '239.9':['Cardo VII','Via Duomo · Via San Pietro Martire · Via Abramo Massalongo'],
+ '325.6':['Cardo VIII','Via Santa Felicita · Vicolo Accoliti'],
+ '400':['Cardo IX','Via Ponte Pietra (tracciato non più rettilineo)']
 };
 const DECU_NAMES={
  '-355':['Decumano I','Nessuna via di oggi su questa linea: tracciato ipotetico presso il Duomo'],
- '-270':['Decumano II','Via Barchetta · Via San Giusto · Vicolo San Fermo Cortalta'],
- '-180':['Decumano III','Via San Mamaso · Via Pigna · Corte San Mamaso'],
- '-90':['Decumano IV','Via Francesco Emilei · Via Achille Forti'],
+ '-264.3':['Decumano II','Via Barchetta · Via San Giusto · Vicolo San Fermo Cortalta'],
+ '-177.4':['Decumano III','Via San Mamaso · Via Pigna · Corte San Mamaso'],
+ '-90.3':['Decumano IV','Via Francesco Emilei · Via Achille Forti'],
  '0':['Decumanus maximus','Corso Porta Borsari · Corso Sant’Anastasia (la Via Postumia dentro le mura)'],
- '87':['Decumano VI','Via Pellicciai · Piazza dei Signori'],
- '175':['Decumano VII','Via Giuseppe Mazzini · Via Alberto Mario'],
- '265':['Decumano VIII','Via Stella · Via Anfiteatro · Via Nizza'],
- '350':['Decumano IX','Via Giovanni Zambelli · Via San Salvatore Corte Regia']
+ '85.3':['Decumano VI','Via Pellicciai · Piazza dei Signori'],
+ '174.9':['Decumano VII','Via Giuseppe Mazzini · Via Alberto Mario'],
+ '266.2':['Decumano VIII','Via Stella · Via Anfiteatro · Via Nizza'],
+ '353.2':['Decumano IX','Via Giovanni Zambelli · Via San Salvatore Corte Regia']
 };
 const OUTSIDE_NAMES=[
  ['Via Postumia, tratto ovest','Oggi Corso Cavour e Corso Castelvecchio, verso l’Arco dei Gavi'],
@@ -993,7 +1071,7 @@ function addStreet(vertical,c,lo,hi,skips){
   for(const r of ranges) if(r[1]-r[0]>4) STREETS.push(vertical?{ax:c,az:r[0],bx:c,bz:r[1],hw:hw(c)}:{ax:r[0],az:c,bx:r[1],bz:c,hw:hw(c)});
 }
 // forum: 168 x 56 m on the axis of Piazza Erbe; area sacra of the Capitolium (triporticus ~80 m) across the decumanus
-const FORUM=[-34,6,22,171.5], CAPIT=[-100.5,-86.5,-20.5,-6];
+const FORUM=[-45.1,6,10.9,171.4], CAPIT=[-100.4,-86.5,-20.6,-6];
 function buildStreetDetail(){
   for(const s of STREETS){
     const vert=s.ax===s.bx, c=vert?s.ax:s.az, lo=vert?s.az:s.ax, hi=vert?s.bz:s.bx;
@@ -1024,21 +1102,21 @@ function buildStreetDetail(){
 }
 function buildCity(){
   for(const x of XL){ const [lo,hi]=clipLine(true,x); addStreet(true,x,lo+1.5,hi-1.5,x===CARDO?[[FORUM[1],FORUM[3]]]:[]); }
-  for(const z of ZL){ const [lo,hi]=clipLine(false,z); addStreet(false,z,lo+1.5,hi-1.5,z===87?[[FORUM[0],FORUM[2]]]:[]); }
+  for(const z of ZL){ const [lo,hi]=clipLine(false,z); addStreet(false,z,lo+1.5,hi-1.5,z===85.3?[[FORUM[0],FORUM[2]]]:[]); }
   const rows=[]; for(let j=0;j<ZL.length;j++) rows.push([ZL[j],ZL[j+1]??null]);
   const cols=[[null,XL[0]]]; for(let i=0;i<XL.length-1;i++) cols.push([XL[i],XL[i+1]]);
   for(const [xa,xb] of cols) for(const [za,zb] of rows){
     let x0=xa===null?-319.5:xa+hw(xa), x1=xb-hw(xb); const z0=za+hw(za), z1=zb===null?403.5:zb-hw(zb);
-    if(xa===-104&&za===-90) continue;
+    if(xa===-103.9&&za===-90.3) continue;
     if(![[x0,z0],[x1,z0],[x0,z1],[x1,z1],[(x0+x1)/2,(z0+z1)/2]].every(p=>inTown(p[0],p[1],5))){ fillPartial(x0,z0,x1,z1); continue; }                            // Capitolium (Corte Sgarzerie)
     let fs=null;                                                 // insulae flanking the forum: shops + portico on the forum side
-    if((xa===-104||xa===CARDO)&&(za===0||za===87)){ if(xa===-104){ x1=FORUM[0]; fs='e'; } else { x0=FORUM[2]; fs='w'; } }
+    if((xa===-103.9||xa===CARDO)&&(za===0||za===85.3)){ if(xa===-103.9){ x1=FORUM[0]; fs='e'; } else { x0=FORUM[2]; fs='w'; } }
     const key=xa+','+za;
-    if(key==='-104,87'){ curiaBlock(x0,z0,x1,z1); continue; }
-    if(key==='-104,175'){ basilicaBlock(x0,z0,x1,z1); continue; }
-    if(key==='70,0'){ domusInterior(x0,z0,x1,z1); continue; }
-    if(key==='155,87'){ baths(x0,z0,x1,z1); continue; }
-    if(key==='-187,87'){ templeBlock(x0,z0,x1,z1); continue; }
+    if(key==='-103.9,85.3'){ curiaBlock(x0,z0,x1,z1); continue; }
+    if(key==='-103.9,174.9'){ basilicaBlock(x0,z0,x1,z1); continue; }
+    if(key==='68,0'){ domusInterior(x0,z0,x1,z1); continue; }
+    if(key==='152.8,85.3'){ baths(x0,z0,x1,z1); continue; }
+    if(key==='-186.3,85.3'){ templeBlock(x0,z0,x1,z1); continue; }
     const mainsOf=(lx0,lz0,lx1,lz1)=>({n:lz0===z0&&za===0,s:lz1===z1&&zb===0,w:lx0===x0&&(xa===CARDO||fs==='w'),e:lx1===x1&&(xb===CARDO||fs==='e')});
     const sidesOf=(lx0,lz0,lx1,lz1)=>({n:lz0===z0,s:lz1===z1,w:lx0===x0,e:lx1===x1});
     const p=rnd(); let lots;
@@ -1151,7 +1229,7 @@ function forum(){
   pave(fx0,fz0,fx1,fz1); pave(...CAPIT);
   const fz=(fz0+fz1)/2;
   put('tower',cx,0,fz,3.6,.9,3.6,0,jit(PAL.stone,.02)); colCirc(cx,fz,3.6); put('pool',cx,.1,fz,4.6,.85,4.6,0,MC(PAL.pool)); put('column',cx,0,fz,.45,3,.45,0,mb);
-  for(const x of [fx0+3,fx1-3]) for(let z=fz0+12;z<fz1-6;z+=20){ put('marble',x,0,z,1.4,2.2,1.4,0,mb); colBox(x-.7,z-.7,x+.7,z+.7); put('column',x,2.2,z,.32,1.6,.32,0,jit('#6f5a3a',.05)); put('leaf',x,4,z,.2,.22,.2,0,jit('#6f5a3a',.05)); }
+  for(const x of [fx0+3,fx1-3]) for(let z=fz0+12;z<fz1-6;z+=20){ put('marble',x,0,z,1.4,2.2,1.4,0,mb); colBox(x-.7,z-.7,x+.7,z+.7); const bz=jit('#6f5a3a',.05); put('statue',x,2.2,z,.72,1.75,.72,rnd()*6,bz); put('leaf',x,3.86,z,.19,.21,.19,0,bz); }
   for(let k=0;k<20;k++){
     const x=rr(fx0+8,fx1-8), z=rr(fz0+10,fz1-10); if(Math.hypot(x-cx,z-fz)<8) continue;
     const r=rnd()<.5?0:Math.PI/2;
@@ -1195,7 +1273,8 @@ function capitolium(){
 
 /* --- walls, towers, gates --- */
 const GATES=[
-  {x:-323,z:0,w:16,type:'borsari'},{x:CARDO,z:408,w:16,type:'leoni'}
+  {x:-323.2,z:0,w:16,type:'borsari'},{x:-17.1,z:410,w:16,type:'leoni'},
+  {x:-184.9,z:-225,w:12},{x:419.9,z:-216,w:10},{x:388.8,z:3.7,w:10},{x:212.5,z:267,w:12}
 ];
 function buildWalls(){
   const H=10, TK=3.5;
@@ -1237,12 +1316,13 @@ function buildGate(g){
     P('marble',0,7,0,16,3,6.2,ws); P('marble',0,10,0,16,6.2,3.2,ws); P('stone',0,16.2,0,16.8,.6,3.8,jit('#cfc3ab',.02));
     for(const y of [11,13.8]) for(let k=0;k<6;k++){ for(const lz of [-1.62,1.62]) P('dark',-6.25+k*2.5,y,lz,1.05,1.7,.12,DARK); }
     for(let k=0;k<7;k++) for(const lz of [-1.7,1.7]) P('column',-7.5+k*2.5,10,lz,.16,3.5,.16,ws);
-    for(const lz of [-3.2,3.2]) for(const lx of [-3.25,3.25]) P('dark',lx,0,lz,4.3,6.2,.1,DARK);
+    for(const lx of [-3.25,3.25]){ const q=pos(lx,0); archOpening(q[0],0,q[1],4.3,6.6,6.4,ry,jit('#e3dbc9',.02)); }
     if(g.type==='leoni'){ for(const s of [-1,1]){ const p=pos(s*11,sgn*3.5); put('tower',p[0],0,p[1],5.2,18,5.2,0,jit('#9a5a42',.03)); colCirc(p[0],p[1],5.2); for(let k=0;k<12;k++){ const a=k/12*Math.PI*2; put('brick',p[0]+Math.cos(a)*4.7,18,p[1]+Math.sin(a)*4.7,1.1,1.3,1.1,-a,jit('#9a5a42',.04)); } } }
     else { for(const s of [-1,1]){ const p=pos(s*10.5,sgn*2.5); put('brick',p[0],0,p[1],6,13,8,ry,jit('#8f513b',.04)); colCirc(p[0],p[1],3.4); } }
   } else {
     const bc=jit(PAL.brick,.03);
     for(const s of [-1,1]){ P('brick',s*3.75,0,0,2.5,6.5,5,bc); for(const lz of [-1.6,1.6]){ const p=pos(s*3.75,lz); colCirc(p[0],p[1],1.25); } }
+    { const q=pos(0,0); archOpening(q[0],0,q[1],5,6.4,5.2,ry,jit('#d9cdb0',.03)); }
     P('brick',0,6.5,0,10,4.2,5,bc); P('stone',0,6.3,0,5.2,.4,5.1,jit('#cbb998',.03));
     for(let k=0;k<5;k++) P('brick',-4+k*2,10.7,sgn*1.9,1.2,1.3,.9,bc);
   }
@@ -1338,7 +1418,7 @@ function buildTheatre(){
   TP('marble',0,8,12.8,90,1,2.2,mb); TP('marble',0,14.4,13.1,90,.9,1.8,mb);
   TP('roof',0,17,15.5,5,1.8,93,jit(PAL.roof[1],.03),Math.PI/2);
   // sanctuary on the hill above
-  const hx=730, hz=-165, hy=terrainH(hx,hz);
+  const hx=731.5, hz=-158, hy=terrainH(hx,hz);
   temple(hx,hz,20,30,3,10,hy-.3,true);
   for(let k=0;k<14;k++){ const a=k/14*Math.PI*2; tree('cypress',hx+Math.cos(a)*30,hz+Math.sin(a)*34,1); }
 }
@@ -1405,16 +1485,16 @@ function ribbon(pts,w,yfn,mat,step=4){
   const m=new T.Mesh(g,mat); m.receiveShadow=true; scene.add(m); return m;
 }
 const ROADS=[
-  {la:'Via Postumia',pts:[[-331,0],[-820,0],[-1180,40]],w:10},
-  {la:'Via Postumia',pts:[[528,0],[780,-20],[1180,10]],w:9},
-  {la:'Via per Hostilia',pts:[[CARDO,416],[-20,520],[-60,600]],w:9},
-  {la:'Strada di levante',pts:[[334,345],[600,400],[1000,480],[1180,520]],w:8},
-  {la:'Strada del ponte occidentale',pts:[[-187,-350],[-180,-600],[-120,-900],[-60,-1180]],w:7},
-  {la:'Via verso l’Arena',pts:[[-338,6],[-345,160],[-372,310],[-386,310]],w:7},
-  {la:'Via degli Horrea',pts:[[-3,495],[-70,495]],w:7},
-  {la:'Lungadige',pts:[[528,0],[556,-28],[572,-62]],w:6},
-  {la:'Lungadige',pts:[[548,-220],[552,-195]],w:6},
-  {la:'Salita al santuario',pts:[[552,-195],[612,-236],[690,-228],[748,-178],[738,-126]],w:5},
+  {la:'Via Postumia',pts:[[-331,-3.2],[-820,-7.9],[-1180.3,28.7]],w:10},
+  {la:'Via Postumia',pts:[[528,5.1],[780.2,-12.5],[1179.9,21.3]],w:9},
+  {la:'Via per Hostilia',pts:[[-25,519.8],[-65.7,599.4]],w:9},
+  {la:'Strada di levante',pts:[[330.7,348.2],[596.1,405.7],[995.4,489.6],[1175,531.3]],w:8},
+  {la:'Strada del ponte occidentale',pts:[[-183.6,-351.8],[-174.2,-601.7],[-111.4,-901.1],[-48.7,-1180.5]],w:7},
+  {la:'Via verso l’Arena',pts:[[-338,2.8],[-346.5,156.7],[-375,306.4],[-389,306.3]],w:7},
+  {la:'Via degli Horrea',pts:[[-7.7,494.9],[-74.7,494.3]],w:7},
+  {la:'Lungadige',pts:[[528,5.1],[556.2,-22.7],[572.6,-56.5]],w:6},
+  {la:'Lungadige',pts:[[550.1,-214.7],[553.8,-189.7]],w:6},
+  {la:'Salita al santuario',pts:[[553.8,-189.7],[614.2,-230.1],[692.2,-221.4],[749.7,-170.8],[739.2,-118.9]],w:5},
 ];
 function roadDist(x,z){ let d=1e9; for(const r of ROADS) for(let i=0;i<r.pts.length-1;i++){ const q=segDist(x,z,r.pts[i][0],r.pts[i][1],r.pts[i+1][0],r.pts[i+1][1])-r.w/2; if(q<d) d=q; } return d; }
 function buildStreets(){
@@ -1629,31 +1709,31 @@ function updateBoats(dt){
 
 /* ---------------- places ---------------- */
 const PLACES=[
-  {id:'forum',la:'Forum',it:'Il foro · oggi Piazza delle Erbe',x:-6,z:88,r:84,v:[-6,12,-6,120],txt:'Una piazza lunga 168 m e larga 56, lastricata in calcare bianco e rosa, a sud-est del decumano: Corso Porta Borsari e Corso Sant’Anastasia la toccano sul lato corto. Era circa il doppio dell’attuale Piazza delle Erbe.'},
-  {id:'domus',la:'Domus',it:'Una casa da attraversare',x:112,z:44,r:48,v:[74,44,120,44],txt:'Si entra dalla strada: corridoio d’ingresso, atrio con la vasca dell’impluvio sotto l’apertura del tetto, stanze dipinte in rosso pompeiano, tablino e giardino con il portico. Pianta tipica, non una casa veronese documentata.'},
-  {id:'curia',la:'Curia',it:'La sede del consiglio cittadino',x:-55,z:112,r:22,v:[-24,112,-55,112],txt:'Sul lato sud-ovest del foro, larga circa 27 m, con una grande scalinata verso la piazza. Qui la ricostruzione è semplificata.'},
-  {id:'basilica',la:'Basilica',it:'Tribunale e affari · lungo Via Mazzini',x:-62,z:198,r:30,v:[-62,172,-62,200],txt:'Oltre il decumano secondario a sud del foro, dove oggi corre Via Mazzini; ne restano tracce di età severiana. Forma e alzato sono ipotetici.'},
-  {id:'capit',la:'Capitolium',it:'Tempio della Triade capitolina',x:-60,z:-46,r:40,v:[-60,-8,-60,-50],txt:'Giove, Giunone e Minerva: il tempio (35 × 42 m) stava a nord-ovest del foro, oltre il decumano, su alto podio rivolto verso la piazza, abbracciato da un portico di circa 80 m su tre lati. I resti sono sotto Corte Sgarzerie.'},
-    {id:'arena',la:'Amphitheatrum',it:'L’Arena',x:-447,z:310,r:95,v:[-447,310,-447,240],txt:'Costruita nel I secolo d.C. fuori dalle mura, verso sud, dove oggi è Piazza Bra: circa 30.000 spettatori. Qui l’anello esterno è intero, com’era prima dei terremoti medievali: entra dagli ingressi sugli assi e sali sulle gradinate.'},
-    {id:'theatre',la:'Theatrum',it:'Il Teatro romano',x:560,z:-130,r:75,v:[560,-130,612,-137],txt:'Della fine del I secolo a.C., scavato nel colle di San Pietro sulla riva sinistra, di fronte alla città e accanto a Ponte Pietra. Si entra dai lati, tra la scena e le gradinate.'},
-    {id:'borsari',la:'Porta Iovia',it:'Porta Borsari',x:-323,z:0,r:30,v:[-356,2,-290,0],txt:'La porta principale: da qui la Via Postumia entrava in città diventando decumano massimo. La facciata in pietra bianca a due fornici è ancora in piedi.'},
-    {id:'leoni',la:'Porta Leoni',it:'La porta del cardo',x:-17,z:408,r:30,v:[-17,442,-17,380],txt:'La porta sud, all’imbocco del cardo massimo, era affiancata da due torri a sedici lati. Oggi ne resta metà facciata in Via Leoni.'},
-    {id:'pietra',la:'Pons Marmoreus',it:'Ponte Pietra',x:484,z:-220,r:40,v:[426,-220,548,-220],txt:'L’unico ponte romano di Verona giunto fino a noi, alla punta dell’ansa, davanti al teatro: fatto saltare nel 1945, fu ricostruito con le pietre ripescate dal fiume. La torre sulla riva della città è medievale, aggiunta qui perché fa parte del ponte come lo conosciamo.'},
-    {id:'postumius',la:'Pons Postumius',it:'Il ponte perduto',x:460,z:0,r:40,v:[398,0,528,0],txt:'In fondo al decumano, oltre Sant’Anastasia: il ponte della Via Postumia verso la riva sinistra e Vicetia. Oggi scomparso.'},
-    {id:'isle',la:'Insula',it:'L’isola nel fiume',x:480,z:-118,r:55,v:[424,-96,480,-118],txt:'Un’isola alberata nell’Adige davanti al teatro, come nella veduta di partenza. Un’isola vera, l’Isolo, esistette più a valle fino all’Ottocento.'},
-  {id:'decumanus',la:'Decumanus maximus',it:'Corso Porta Borsari · Corso Sant’Anastasia',x:-180,z:0,r:0,v:[-300,0,-100,0],txt:'Il tratto urbano della Via Postumia, la strada consolare da Genova ad Aquileia, fiancheggiato da portici e botteghe.'},
-  {id:'cardo',la:'Cardo maximus',it:'Via Leoni · Via Cappello',x:-17,z:280,r:0,v:[-17,390,-17,200],txt:'L’asse nord-sud, da Porta Leoni fino al foro, con portici continui sui due lati.'},
-    {id:'gavi',la:'Arcus Gaviorum',it:'L’Arco dei Gavi',x:-700,z:0,r:26,v:[-745,4,-700,0],txt:'Arco onorario della famiglia Gavia, I secolo d.C., sulla Via Postumia (oggi Corso Cavour) presso Castelvecchio. Smontato nel 1805, fu ricomposto accanto al castello.'},
-  {id:'thermae',la:'Thermae',it:'Le terme (ipotesi)',x:187,z:112,r:42,v:[187,70,187,120],txt:'Un complesso termale ricostruito per ipotesi: sala a cupola, palestra con portico e piscina.'},
-    {id:'horrea',la:'Horrea',it:'Magazzini (ipotesi)',x:-170,z:495,r:75,v:[-20,495,-170,495],txt:'Lunghi magazzini chiusi da un recinto fuori da Porta Leoni, come nell’illustrazione di partenza: la loro funzione reale resta un’ipotesi.'},
-    {id:'necro',la:'Necropolis',it:'Tombe lungo la Via Postumia',x:-500,z:14,r:120,v:[-400,8,-600,15],txt:'Le tombe fiancheggiavano le strade fuori dalle mura: la legge romana vietava di seppellire i morti in città.'},
-    {id:'hill',la:'Collis',it:'Il colle di San Pietro',x:730,z:-165,r:60,v:[738,-126,0,40],txt:'In cima, sopra il teatro, un santuario terrazzato. Da quassù si vede tutta l’ansa dell’Adige con la città dentro.'},
+  {id:'forum',la:'Forum',it:'Il foro · oggi Piazza delle Erbe',x:-6.8,z:87.9,r:84,v:[-6.1,11.9,-7.1,119.9],txt:'Una piazza lunga 168 m e larga 56, lastricata in calcare bianco e rosa, a sud-est del decumano: Corso Porta Borsari e Corso Sant’Anastasia la toccano sul lato corto. Era circa il doppio dell’attuale Piazza delle Erbe.'},
+  {id:'domus',la:'Domus',it:'Una casa da attraversare',x:111.6,z:45.1,r:48,v:[73.6,44.7,119.6,45.1],txt:'Si entra dalla strada: corridoio d’ingresso, atrio con la vasca dell’impluvio sotto l’apertura del tetto, stanze dipinte in rosso pompeiano, tablino e giardino con il portico. Pianta tipica, non una casa veronese documentata.'},
+  {id:'curia',la:'Curia',it:'La sede del consiglio cittadino',x:-56.1,z:111.5,r:22,v:[-25.1,111.8,-56.1,111.5],txt:'Sul lato sud-ovest del foro, larga circa 27 m, con una grande scalinata verso la piazza. Qui la ricostruzione è semplificata.'},
+  {id:'basilica',la:'Basilica',it:'Tribunale e affari · lungo Via Mazzini',x:-63.9,z:197.4,r:30,v:[-63.6,171.4,-63.9,199.4],txt:'Oltre il decumano secondario a sud del foro, dove oggi corre Via Mazzini; ne restano tracce di età severiana. Forma e alzato sono ipotetici.'},
+  {id:'capit',la:'Capitolium',it:'Tempio della Triade capitolina',x:-59.6,z:-46.6,r:40,v:[-59.9,-8.6,-59.5,-50.6],txt:'Giove, Giunone e Minerva: il tempio (35 × 42 m) stava a nord-ovest del foro, oltre il decumano, su alto podio rivolto verso la piazza, abbracciato da un portico di circa 80 m su tre lati. I resti sono sotto Corte Sgarzerie.'},
+    {id:'arena',la:'Amphitheatrum',it:'L’Arena',x:-449.7,z:308.3,r:95,v:[-449.9,305.7,-449.3,235.7],txt:'Costruita nel I secolo d.C. fuori dalle mura, verso sud, dove oggi è Piazza Bra: circa 30.000 spettatori. Qui l’anello esterno è intero, com’era prima dei terremoti medievali: entra dagli ingressi sugli assi e sali sulle gradinate.'},
+    {id:'theatre',la:'Theatrum',it:'Il Teatro romano',x:581.2,z:-118.7,r:75,v:[561.2,-124.6,613.3,-131.1],txt:'Della fine del I secolo a.C., scavato nel colle di San Pietro sulla riva sinistra, di fronte alla città e accanto a Ponte Pietra. Si entra dai lati, tra la scena e le gradinate.'},
+    {id:'borsari',la:'Porta Iovia',it:'Porta Borsari',x:-323.2,z:0,r:30,v:[-356,-1.4,-290,-2.8],txt:'La porta principale: da qui la Via Postumia entrava in città diventando decumano massimo. La facciata in pietra bianca a due fornici è ancora in piedi.'},
+    {id:'leoni',la:'Porta Leoni',it:'La porta del cardo',x:-17.1,z:410,r:30,v:[-21.2,441.8,-20.6,379.8],txt:'La porta sud, all’imbocco del cardo massimo, era affiancata da due torri a sedici lati. Oggi ne resta metà facciata in Via Leoni.'},
+    {id:'pietra',la:'Pons Marmoreus',it:'Ponte Pietra',x:481.5,z:-229.2,r:40,v:[428.1,-215.9,550.1,-214.7],txt:'L’unico ponte romano di Verona giunto fino a noi, alla punta dell’ansa, davanti al teatro: fatto saltare nel 1945, fu ricostruito con le pietre ripescate dal fiume. La torre sulla riva della città è medievale, aggiunta qui perché fa parte del ponte come lo conosciamo.'},
+    {id:'postumius',la:'Pons Postumius',it:'Il ponte perduto',x:460,z:4.4,r:40,v:[398,3.8,528,5.1],txt:'In fondo al decumano, oltre Sant’Anastasia: il ponte della Via Postumia verso la riva sinistra e Vicetia. Oggi scomparso.'},
+    {id:'isle',la:'Insula',it:'L’isola nel fiume',x:481.1,z:-113.4,r:55,v:[424.9,-91.9,481.1,-113.4],txt:'Un’isola alberata nell’Adige davanti al teatro, come nella veduta di partenza. Un’isola vera, l’Isolo, esistette più a valle fino all’Ottocento.'},
+  {id:'decumanus',la:'Decumanus maximus',it:'Corso Porta Borsari · Corso Sant’Anastasia',x:-180,z:-1.7,r:0,v:[-300,-2.9,-100,-1],txt:'Il tratto urbano della Via Postumia, la strada consolare da Genova ad Aquileia, fiancheggiato da portici e botteghe.'},
+  {id:'cardo',la:'Cardo maximus',it:'Via Leoni · Via Cappello',x:-19.7,z:279.8,r:0,v:[-20.7,389.8,-18.9,199.8],txt:'L’asse nord-sud, da Porta Leoni fino al foro, con portici continui sui due lati.'},
+    {id:'gavi',la:'Arcus Gaviorum',it:'L’Arco dei Gavi',x:-700,z:0,r:26,v:[-745,-3.1,-700,-6.7],txt:'Arco onorario della famiglia Gavia, I secolo d.C., sulla Via Postumia (oggi Corso Cavour) presso Castelvecchio. Smontato nel 1805, fu ricomposto accanto al castello.'},
+  {id:'thermae',la:'Thermae',it:'Le terme (ipotesi)',x:185.9,z:113.8,r:42,v:[186.3,71.8,185.8,121.8],txt:'Un complesso termale ricostruito per ipotesi: sala a cupola, palestra con portico e piscina.'},
+    {id:'horrea',la:'Horrea',it:'Magazzini (ipotesi)',x:-174.7,z:493.3,r:75,v:[-24.7,494.8,-174.7,493.3],txt:'Lunghi magazzini chiusi da un recinto fuori da Porta Leoni, come nell’illustrazione di partenza: la loro funzione reale resta un’ipotesi.'},
+    {id:'necro',la:'Necropolis',it:'Tombe lungo la Via Postumia',x:-500.1,z:9.2,r:120,v:[-400.1,4.2,-600.1,9.3],txt:'Le tombe fiancheggiavano le strade fuori dalle mura: la legge romana vietava di seppellire i morti in città.'},
+    {id:'hill',la:'Collis',it:'Il colle di San Pietro',x:731.5,z:-158,r:60,v:[739.2,-118.9,-0.4,40],txt:'In cima, sopra il teatro, un santuario terrazzato. Da quassù si vede tutta l’ansa dell’Adige con la città dentro.'},
 ];
 
 /* ---------------- map ---------------- */
 // today's street network (OpenStreetMap), in the same grid-aligned frame
-const MODERN=[[-419,-306,-417,-314,-404,-361,-402,-371,-381,-450,-379,-461,-360,-533,-358,-544,-333,-638,-330,-651,-312,-721],[-187,0,-189,-7,-188,-91],[-272,174,-270,222,-272,265],[-344,-5,-344,0,-343,5,-342,19,-339,43,-339,47,-339,86,-339,97,-340,121,-336,167],[-312,202,-308,268],[28,-555,31,-543],[31,-543,16,-535,-18,-519,-51,-505,-70,-496,-93,-481,-128,-457,-139,-454,-143,-452,-153,-445,-162,-435,-204,-405,-211,-401],[-213,-337,-215,-340,-220,-348,-227,-359,-230,-361,-233,-363],[40,-468,41,-457],[52,-361,52,-350,54,-338,58,-307,59,-296],[-139,-454,-139,-462,-138,-502,-135,-564,-133,-604,-132,-611,-132,-619,-127,-704,-126,-713],[-127,-733,-139,-733,-146,-732],[145,-637,140,-641,56,-725,55,-740],[129,-621,137,-618,171,-603],[424,-227,445,-230],[-468,217,-464,210,-458,199,-450,189],[508,-25,488,18,472,54,465,68,457,80,449,90,431,111,417,130,384,176,357,217,347,231,337,247,327,263,298,310],[337,430,339,429,345,425,361,413,368,405,382,389,387,380,401,366,409,362,416,353,441,319,450,307,459,279,462,269,462,259,462,231,461,208,461,204],[198,271,205,273],[430,197,447,151,448,145],[-407,-228,-406,-225,-361,-126],[-361,-126,-357,-119],[-384,289,-386,286,-398,259,-420,232],[-17,565,-19,542,-20,536,-22,532],[28,-555,20,-567,17,-571,8,-580,5,-582],[-292,-752,-283,-739,-220,-671,-216,-666,-190,-638,-171,-619],[34,-513,37,-509,40,-507,43,-507,49,-510],[-358,-544,-349,-543,-246,-522,-138,-502],[-330,-651,-322,-649,-234,-631,-224,-629,-200,-624,-176,-620,-171,-619],[-266,-422,-246,-522,-234,-582,-226,-622,-224,-629],[-211,-401,-217,-393,-229,-371,-233,-363],[-381,-450,-374,-449,-266,-422,-224,-410,-213,-402],[-459,-287,-468,-291,-481,-296],[-425,-267,-441,-279,-459,-287],[-282,-295,-251,-313,-213,-337,-71,-426,-35,-443,27,-463,35,-466,40,-468],[-321,-279,-355,-262,-389,-246,-394,-244,-411,-236],[-260,-333,-270,-336,-392,-369,-402,-371],[-402,-371,-410,-373,-458,-387,-472,-390,-484,-394],[-468,217,-450,218,-438,215,-313,182,-287,175,-272,174,-248,175,-227,175,-184,176,-125,173,-107,174,-77,172,-39,169,-21,166,-16,165],[575,397,577,358,583,249,584,244,586,204,586,197],[586,197,584,111,582,57],[172,-655,184,-663,188,-671,187,-681],[172,-655,181,-635,195,-605],[-15,316,-14,271,-15,262,-15,224,-14,201,-15,188,-16,165,-17,143],[68,-94,14,-92,-20,-91,-25,-91,-33,-92,-38,-92,-59,-91,-105,-91,-134,-92,-153,-91,-165,-91,-188,-91,-194,-92,-250,-92,-254,-92,-259,-94,-263,-94,-272,-95],[396,-184,324,-182],[236,-293,236,-270,236,-205,238,-182,240,-93],[-17,143,32,151,51,154,70,155],[155,245,155,251,155,255,155,258],[325,-315,306,-315,301,-315,287,-306,277,-290,252,-289,236,-293],[-357,-119,-346,-124,-324,-136,-277,-167,-185,-227,-107,-277,-30,-328,3,-344,24,-354,39,-359,49,-361],[325,-315,332,-284],[144,-379,139,-379,66,-365,58,-363,52,-361],[153,-340,104,-341,72,-340],[-19,-258,-20,-179,-20,-91],[-103,-2,-105,-86,-105,-91],[-321,90,-296,89,-272,89],[-107,174,-107,170,-105,119,-101,84],[-23,449,-27,447,-32,446,-87,452,-181,456,-209,452,-260,442,-299,434,-327,428,-356,420],[-87,452,-88,483,-88,516,-88,520],[-181,328,-142,335,-98,355,-94,357,-23,351,-16,351],[-42,384,-49,393,-62,398,-83,395,-91,393],[-94,357,-91,393],[-16,351,72,347],[-361,6,-362,20,-363,30,-367,40,-370,48,-373,54,-395,77,-407,97,-419,119,-447,176],[154,201,187,194,192,192,211,182],[69,190,68,194,68,254,68,260],[225,182,238,165,254,145,289,99,292,95],[-272,-95,-276,-62,-274,0],[169,-330,166,-303],[-264,-143,-259,-133,-258,-121,-258,-104,-258,-98,-259,-94],[-12,0,5,0],[325,-315,335,-322,359,-325,373,-288,374,-284],[-420,232,-386,221,-343,209,-327,205,-312,202],[367,-503,371,-508,374,-511],[-17,-48,-17,-56,-17,-62,-17,-67,-26,-70,-29,-69,-29,-57,-19,-48],[-18,0,-16,-14,-15,-31,-15,-40,-16,-44,-17,-48],[-26,-69,-27,-72,-25,-91,-33,-92,-38,-92,-40,-73,-29,-69,-26,-69],[41,86,43,89,65,89,69,89,72,89,83,89,95,89,105,89,105,82,105,72,105,53,71,53,67,52,40,53,40,57,41,86],[69,53,68,-3],[12,86,7,85,4,85,-18,83,-24,83],[-405,-97,-403,-89,-402,-86,-399,-65,-398,-45,-397,-31,-394,-8,-393,-2],[-357,-119,-364,-116,-405,-97,-463,-79,-486,-72,-494,-62,-494,-57,-509,-58,-568,-62,-575,-62],[-575,-62,-577,-5,-577,-1],[-494,-57,-483,-54,-477,-46,-474,-37,-472,-8,-471,-3],[-402,-86,-378,-91,-376,-84,-354,-86,-347,-87],[-761,-6,-743,-7,-718,-7,-707,-7,-694,-6,-669,-5,-630,-3,-625,-2,-577,-1],[208,-302,185,-303,168,-303,169,-330,176,-329,185,-329,199,-330,211,-333,211,-325,211,-322,207,-322,207,-318,208,-314,212,-314,212,-310,212,-303,217,-303,222,-301,225,-303,229,-303,232,-301,237,-304,242,-304,245,-302,250,-304,252,-295,256,-292,251,-292,246,-293,238,-296,229,-298,212,-299,208,-302],[154,85,117,86],[-276,306,-302,308],[-127,-733,-120,-733,-1,-732,6,-732,13,-732,39,-732,55,-740,117,-765,122,-768],[104,-814,97,-812,73,-806,4,-796,-1,-795],[328,51,339,59],[254,145,272,159],[238,83,249,83,277,84,285,88,292,95],[239,65,256,65,287,63,294,50,300,36,305,26,305,9],[305,106,292,95],[-296,377,-237,372,-185,354],[16,416,26,418,31,417,54,413,64,409,75,386,78,363,72,347],[274,6,305,9,318,11,328,14,340,21,348,25],[240,-91,240,-70,239,-21,239,-4],[239,-4,238,4,238,42,239,65,238,69,238,83],[7,0,31,-2,49,-3,61,-3],[61,-3,64,-46,67,-73,68,-94],[240,-91,179,-93,154,-94,149,-94,96,-94,68,-94],[-15,262,-98,265],[-17,565,-6,557,-1,556,3,554,11,548,16,542,25,530,40,507,75,453,137,357,160,325],[242,205,248,203,276,162],[154,154,154,85],[111,155,104,155,95,155,88,155,70,155],[72,347,71,329],[152,-2,153,-29,154,-94],[151,-180,151,-187,151,-209,151,-217,151,-238,151,-249,152,-256,153,-268],[-312,202,-312,192,-313,186,-313,182],[190,154,154,154],[242,205,234,192,225,182],[-274,0,-273,37,-272,85,-272,89,-271,112,-272,136,-272,172],[154,85,152,-2],[149,-94,148,-133,147,-173,148,-178,151,-180],[153,-340,152,-326,152,-300],[406,-221,408,-211,404,-195,396,-184,392,-132,390,-123,387,-118,368,-106],[367,-3,373,-16,376,-24,381,-37,390,-67,392,-73,393,-83,394,-86,393,-90,391,-96,389,-99,383,-104,376,-106,368,-106],[238,104,232,138,227,157,222,166,217,174],[154,85,200,85,228,84,238,83],[88,141,94,141,104,141,110,141,117,141,123,141,123,118,117,118,115,111,106,111,106,108,95,108,88,108,88,138],[69,89,69,132,69,138,70,155],[20,131,35,133,52,136,51,130,51,105,42,104,24,103,23,110,22,114,20,131],[31,-2,33,15,36,56],[94,-268,96,-214,94,-179],[61,-267,94,-268,153,-268],[526,-268,534,-270,538,-273,552,-293,565,-307,573,-317,590,-334],[560,-294,575,-286,581,-294,586,-301,574,-311,568,-303,560,-294],[601,-328,608,-326,615,-324,626,-321,686,-321,695,-321,701,-320,713,-319,721,-316,729,-313,735,-311],[-73,85,-74,104,-76,120,-77,167,-77,172],[-41,150,-43,146,-44,142,-45,133,-45,104],[-74,104,-45,104],[566,-386,553,-374,529,-351],[-93,62,-72,63,-71,50,-92,50,-94,62],[-72,50,-72,38,-78,34,-81,29,-85,24,-87,-3],[-76,120,-102,119,-105,119],[-105,119,-129,120],[-145,86,-142,120,-133,120,-125,171],[-184,176,-185,135,-185,118,-184,86,-186,12,-187,0],[-181,267,-182,233,-182,219,-184,178],[-181,456,-180,413,-182,392,-186,378,-186,365,-185,354,-181,328,-183,304,-181,267],[-93,51,-97,51,-123,48,-127,44],[-131,37,-133,34,-137,29,-146,28,-148,38,-136,38,-131,37],[-127,44,-131,39],[-131,39,-133,34,-137,29,-137,0],[154,154,154,157,154,201],[238,4,273,4,274,-9,275,-21,268,-21,239,-21,239,-4,238,4],[67,-178,-16,-179,-20,-179,-42,-180,-65,-179],[324,-182,238,-182,151,-180,94,-179,70,-178],[374,-284,380,-271,385,-261,390,-250,392,-247],[325,-91,324,-182],[59,-296,152,-300],[169,-330,153,-340],[-19,-258,5,-265,16,-271,21,-274,36,-283,46,-293,51,-296,59,-296],[-81,-234,-76,-236,-37,-250,-19,-258],[260,-514,259,-503,254,-488,250,-471],[209,440,187,475,185,478,156,519,114,585],[526,-268,527,-264,527,-257,527,-248],[503,281,498,294,495,301,490,311,478,333,468,347,460,359,452,370,444,381,436,390,430,397,420,407,407,419,399,426,390,434,382,440,366,450,363,451,351,458],[-61,-91,-61,-156],[-81,-180,-81,-194,-80,-213,-79,-217],[-159,0,-160,-26,-161,-42,-162,-47],[110,-41,110,-37,111,-31,111,-25,111,-22,113,-20,119,-22,127,-26,127,-30,121,-32,121,-40,115,-41,110,-41],[127,-30,153,-29],[586,197,599,196,627,193,630,193,647,191,661,190,666,190,669,191,680,190,690,190,699,187,725,175,744,160,742,154,730,138,724,130,723,125],[471,144,474,149,475,152,478,201],[479,203,490,203,519,199,527,198,538,197,554,198,562,198,586,197],[314,353,319,349,343,328,346,325,366,302,387,271,390,266,422,215,430,197],[-225,307,-217,307,-205,306,-193,305,-183,304],[-276,306,-268,310,-225,307],[-276,265,-276,272,-276,306],[-551,-1,-551,5,-550,19,-545,36,-543,46,-544,90,-543,123,-545,146],[-582,137,-581,125,-581,105,-581,99,-578,64,-574,4,-574,0],[-639,119,-638,113,-637,92,-634,69,-630,-3],[-669,114,-670,44,-669,-1,-669,-5],[-707,-7,-709,59],[-87,-3,-88,-6],[-118,-214,-116,-208,-112,-200,-108,-180,-106,-165,-104,-139,-105,-91],[-134,-92,-133,-137,-104,-139],[-447,176,-462,168,-485,159,-518,152,-540,147,-545,146,-575,141,-582,137,-609,129,-624,124,-639,119,-647,116,-669,114,-709,111,-729,112,-747,113,-753,116],[93,677,135,642,174,614,176,612,239,578,278,548],[36,-283,36,-269,61,-267],[-340,121,-345,121,-399,123,-419,119],[-407,97,-429,90,-428,71,-450,40],[441,319,387,271],[368,405,364,395,361,386,354,360,347,339,343,328],[327,263,338,306,345,322,346,325],[368,405,381,417],[-37,200,-38,173,-39,169],[-41,215,-55,216,-64,217,-85,216,-81,189],[-85,216,-83,235],[-37,200,-75,197,-78,189],[43,192,34,192,25,192,5,190,-15,188],[389,506,377,518,367,525,358,532,343,544,306,577,290,593],[-135,-564,-140,-565,-228,-581,-234,-582],[528,-193,550,-193],[-22,532,-12,526,-13,518,-14,511,-20,469,-23,449],[172,-655,157,-647,151,-642],[-425,-267,-417,-249,-414,-241,-411,-236],[38,-482,45,-500,49,-510],[-277,-167,-276,-165,-273,-158,-267,-141],[374,-511,384,-504,392,-496,399,-487,422,-459,437,-440,456,-419,476,-397,486,-387,494,-374],[306,577,284,549,278,548],[36,56,30,57],[209,440,211,443,214,446,217,446,235,429,241,427,285,388,287,385,282,365,277,361,267,355],[337,430,332,433,302,454,214,507],[515,122,476,126,470,134],[510,249,499,278,493,294,487,307,481,318,473,330,466,342,460,351,452,362,444,374,426,393,420,399,417,396,404,407,401,412,392,424,386,430,380,434,373,439,361,447,353,451,350,451,360,442,364,439,369,434,375,425,379,421,381,417,393,401,406,381,410,375,407,372,414,361,424,368,434,354,430,351,436,343,429,338,452,307,460,284,461,280,462,277,464,270,464,248,464,236,464,219,464,208,476,207,478,227,478,237,481,237,484,233,484,208,494,207,511,206,514,208,517,210,518,213,519,216,517,222,516,228,510,249],[351,458,355,466,362,475,364,478],[-321,96,-339,97],[556,-403,564,-396,566,-393,567,-390,566,-386,573,-377,576,-372,577,-368,575,-352],[626,-321,628,-308,633,-295],[495,-372,505,-385,513,-398,520,-411,525,-420,532,-425,538,-428,551,-432,554,-432,559,-430],[495,-372,506,-357,509,-351,511,-346,512,-340,512,-334],[-551,221,-550,212,-549,202,-549,198,-545,175,-542,158],[-319,167,-318,157,-320,97,-321,90,-323,32,-316,28,-294,27],[-98,265,-97,340,-98,355],[114,585,117,590,120,592,124,595],[32,151,35,135],[723,125,711,119,696,116,688,114,681,113,675,111,671,108,663,101,655,94,645,84,634,75,607,55,601,52,577,44],[58,-307,52,-307,43,-307,35,-308,21,-306,9,-302,6,-300],[69,-132,148,-133],[68,-94,69,-132,67,-178],[239,-4,199,-5,183,-5,169,-4,152,-2],[58,261,-15,262],[67,-178,61,-267,59,-296],[76,-570,60,-559,48,-551,45,-549,41,-547,34,-544,31,-543],[198,-17,198,-23,170,-24,169,-4],[199,-5,198,-17],[-17,407,-17,433,-31,431],[-120,-848,-26,-871,-14,-874],[-181,267,-185,267,-210,267,-216,267,-224,266,-256,266,-272,265,-276,265],[-286,179,-310,186,-315,187,-320,187,-325,188,-337,192,-357,197,-366,200,-397,209,-402,210,-422,215,-438,218,-436,226,-468,217,-459,213,-448,214,-439,212,-435,211,-423,208,-407,204,-388,200,-375,196,-343,187,-334,185,-313,179,-314,170,-313,165,-299,172,-291,172,-283,172,-274,172,-269,172,-262,172,-257,173,-249,173,-244,172,-224,172,-218,173,-213,173,-203,173,-189,173,-185,173,-147,173,-128,171,-107,170,-103,170,-94,170,-89,169,-82,168,-79,167,-74,166,-68,166,-64,167,-55,167,-52,166,-47,166,-43,166,-41,163,-21,159,-21,166,-21,171,-36,173,-41,174,-44,174,-74,173,-78,174,-82,176,-91,176,-96,176,-105,177,-109,177,-129,176,-140,176,-148,176,-158,178,-180,178,-184,178,-188,178,-199,178,-203,178,-218,178,-218,184,-217,187,-221,187,-220,178,-229,178,-243,177,-251,177,-268,177,-271,177,-282,177,-286,178],[95,331,100,321,115,311,123,303,126,296],[507,26,505,21,500,18,496,16,491,17,488,18],[386,-220,398,-218,406,-221],[-308,268,-307,272,-303,300,-302,308],[-309,-57,-312,-62,-314,-80,-312,-91,-310,-96,-308,-100],[394,182,430,197],[430,197,461,204,479,203],[367,-3,369,-1,375,3],[-210,227,-207,220,-185,220],[-270,222,-228,227,-211,227],[-182,219,-139,219,-120,220,-115,218],[-115,218,-112,212,-107,177],[-336,167,-319,167,-314,168,-300,173,-287,175],[332,-284,343,-283,363,-284,374,-284],[390,-250,386,-220],[406,-221,419,-226],[290,-224,270,-217,253,-208,236,-205],[332,-284,323,-279,320,-276,322,-225,321,-182],[236,-205,221,-205,206,-204,188,-205],[-171,-619,-132,-611,-121,-609,-21,-590,-6,-587,5,-582],[68,260,78,260,114,259,138,258,155,258],[311,347,314,353],[-24,83,-30,83,-73,85,-96,84,-101,84,-122,84,-145,86,-163,86,-184,86],[-272,85,-268,85],[278,548,286,542,335,505,359,483,364,478],[226,662,260,702,273,719,280,734],[-17,143,-24,83],[278,548,255,518],[314,353,306,357,285,364,282,365],[318,479,314,473,312,471,302,454],[351,458,344,462,341,464,318,479,260,514,255,518,186,558],[158,-685,159,-676,158,-666,158,-659,155,-651,151,-642],[153,-268,164,-269,186,-269,191,-269,236,-270],[164,-301,164,-269],[526,309,523,283],[-444,-305,-439,-296,-431,-280,-427,-271,-425,-267],[-449,-318,-445,-308],[78,363,94,367,109,339],[200,85,197,112,195,132],[-294,-302,-293,-299,-291,-296,-287,-293],[5,-582,-13,-601,-19,-607,-117,-703,-126,-713,-146,-732,-223,-806,-233,-814],[419,-226,424,-227],[568,25,555,27,536,27,507,26],[554,198,543,143,543,120,542,110,532,85],[530,73,530,51,536,39,536,27],[532,85,530,73],[512,-334,509,-329],[-274,0,-237,0,-229,0,-223,0,-187,0,-183,0,-159,0,-137,0,-122,-1,-103,-2,-87,-3,-51,-2,-18,0],[-88,-6,-87,-14],[-341,-8,-340,-12,-345,-74,-347,-87],[71,329,84,329,95,331],[362,225,390,266],[-447,176,-451,184,-450,189],[198,271,202,265],[199,211,195,209,184,205,181,205,168,203,165,203,156,205,157,200,158,191,168,189,182,187,191,186,191,180,197,179,207,177,210,176,213,174,215,176,221,185,212,194,199,211],[-272,-95,-308,-100,-338,-102,-348,-102],[582,57,569,62,547,79,532,85],[584,111,542,110],[-434,230,-476,225,-527,221,-542,221,-551,221,-574,222,-629,235,-653,242,-658,245],[-476,225,-468,217],[-243,111,-271,112],[535,-83,534,-90,532,-99,531,-103,530,-112],[535,-83,530,-86,528,-87],[-308,-100,-303,-115,-296,-127,-267,-141],[-15,224,-12,224],[-302,308,-300,321,-297,355,-296,377],[-357,-119,-348,-102,-348,-92,-347,-87],[-341,-8,-334,-1,-329,-1,-324,-1],[-419,-306,-436,-297,-439,-296,-456,-288],[-224,-629,-220,-649,-216,-666],[145,-637,129,-621],[171,-603,175,-601,191,-595,203,-590,212,-587],[171,-603,188,-601,195,-605],[530,-112,525,-87,524,-83,521,-72,518,-61,511,-39,510,-33,508,-25],[-339,43,-357,42,-367,40],[-361,4,-344,0,-343,5,-342,19,-362,20,-361,8,-361,4],[-187,85,-184,86],[-211,85,-204,85,-187,85],[-229,85,-211,85],[-244,85,-229,85],[-262,85,-244,85],[-267,85,-262,85],[6,-300,5,-265],[-229,0,-229,23,-220,24],[-223,0,-224,-33,-236,-36],[-237,0,-237,-6,-237,-16],[-58,-41,-59,-57],[-74,-75,-52,-75,-51,-72,-59,-72,-59,-57,-67,-57,-66,-71,-74,-71,-74,-75],[-59,-74,-51,-73],[-51,-73,-40,-73],[-59,-75,-59,-89],[-59,-57,-59,-72,-59,-75],[-17,-67,12,-66,14,-92],[64,-46,36,-50,33,-50,15,-44,12,-66],[33,15,46,15,49,-3],[30,57,11,59],[111,155,110,149],[95,155,95,150],[95,108,95,89],[117,86,105,86],[117,86,118,101,117,106],[43,89,42,103],[117,106,117,118],[88,138,83,138,73,138],[73,138,69,138],[36,128,51,130],[66,132,69,132],[23,110,7,108],[183,-5,183,0,183,20],[-12,224,2,224],[2,224,13,223],[153,-340,149,-349,146,-357,146,-364,146,-375,144,-379],[386,-220,374,-222,359,-223,337,-226,322,-225],[153,-268,152,-273,152,-300],[-65,-179,-81,-180,-85,-180,-108,-180],[-65,-179,-64,-189,-66,-202,-67,-214,-73,-220,-78,-219,-81,-234],[-144,-204,-118,-214,-98,-225,-81,-234],[-81,-234,-106,-275],[-61,-156,-42,-157],[-61,-156,-64,-167,-65,-179],[-85,-180,-86,-170,-78,-170,-77,-166,-64,-167,-65,-179,-85,-180],[-276,265,-280,265,-308,268],[-308,268,-329,271,-345,273,-355,278,-361,282,-378,288,-384,289],[-181,267,-98,265],[-411,-236,-408,-229],[236,-293,216,-295,194,-298],[337,430,348,452,351,458],[280,158,312,112,344,64],[-450,189,-445,193,-430,187,-396,177,-372,173,-354,170,-336,167],[582,57,577,44,568,25,560,-21,559,-27,557,-42,549,-57,537,-79,535,-83],[556,-403,547,-411,539,-420,535,-426],[-19,-590,-16,-591,-14,-594,-13,-601],[24,-592,21,-586,18,-582,13,-580,8,-580],[375,3,389,-20,395,-32,400,-47,406,-63,412,-82,420,-106,421,-109],[-484,-394,-480,-384,-449,-318],[-445,-308,-444,-305],[-237,-16,-237,-22],[-237,-22,-237,-33],[-237,-33,-236,-36],[-130,-53,-125,-52,-122,-1],[194,-298,191,-269],[96,-94,94,-75,91,-71,67,-73],[-37,-228,-38,-235,-37,-250],[-20,-285,-17,-266,-19,-258],[71,329,70,264,68,260],[95,331,109,339,125,349],[-19,407,-5,407,9,408,16,416],[527,-248,527,-242,527,-228,528,-193,531,-128,530,-112],[518,-242,527,-242],[591,-337,608,-355,614,-361,623,-368,637,-382,654,-397,658,-400,664,-406,678,-416],[152,-2,99,-3,68,-3,61,-3],[-267,-141,-264,-143,-235,-158,-184,-185,-176,-189,-171,-191,-144,-204],[-52,23,-85,24],[-171,-191,-179,-216,-183,-224],[-24,83,-23,76,-20,58,-14,26,-12,0],[-66,-202,-44,-204,-39,-205],[99,-3,100,-22,111,-22],[192,478,202,465,238,433,241,427],[214,507,195,520],[24,103,42,103,53,104,53,130,54,138,35,135,21,133],[86,140,87,109],[-45,-1061,-40,-1055,-39,-1050,-14,-874,-13,-862,-4,-795,4,-739,6,-732,23,-601,24,-592,25,-574,28,-555],[-185,135,-207,133],[703,-103,724,-106,826,-142,849,-151,857,-161,871,-177,875,-191,872,-219,873,-234,878,-246,885,-255,907,-264,917,-270,956,-291],[702,-103,703,-103],[232,-576,251,-567,288,-547,293,-544,336,-521,354,-510],[195,-605,204,-595,212,-587],[179,-93,181,-115,201,-115,209,-125,210,-136,206,-157],[120,-251,137,-251,151,-249],[590,-334,601,-328],[590,-334,591,-337],[575,-352,579,-347,589,-339],[563,-418,563,-414,562,-410,556,-403],[337,247,349,272],[321,373,333,416,337,430],[335,505,325,490,318,479],[214,507,192,478],[69,192,43,192],[238,6,274,6],[238,69,224,69,215,66,209,65,201,64,200,71],[232,140,210,136],[154,154,127,155,117,155,111,155],[16,-271,18,-256],[322,-225,290,-224],[151,-217,142,-218,134,-218],[166,-301,174,-300,194,-298],[-584,171,-581,170,-579,166,-575,143],[-420,232,-426,231,-434,230],[-16,323,-33,322],[-18,385,-42,384],[-32,442,-31,433,-25,406,-19,407],[9,408,17,403],[-37,200,-39,209,-41,215],[-14,201,-37,200],[-272,136,-295,137],[68,260,58,261],[380,-520,371,-516,364,-513,354,-510],[380,-520,390,-536,392,-540,398,-552],[544,256,521,250,515,265,512,272,509,278,518,281,523,283,527,283,526,276,527,273,542,257],[523,283,522,278,512,272,507,270],[34,-513,36,-500,38,-482],[49,-510,51,-516,55,-527,61,-541,76,-570],[31,-543,33,-527,34,-513],[212,-587,218,-583,223,-580,232,-576],[367,-503,392,-480,413,-455,441,-423,450,-414,474,-388,487,-368,509,-329,520,-301,526,-277,526,-268],[16,86,12,86],[69,89,43,86,16,86],[9,21,10,29,11,56,12,61,12,80,12,86,7,107,4,127,2,137,-5,135,1,106,2,100,4,88,4,85,5,57,4,13,4,10,0,6,9,6,9,11,9,21],[41,-456,46,-409,51,-367],[51,-367,52,-361],[281,323,286,327],[205,273,275,319],[38,-482,40,-468],[524,217,522,223,516,245,507,270,503,281],[508,-25,507,-4,507,26,507,30,511,100,515,122,521,156,526,189,527,198,526,207,524,217],[68,86,95,86,105,86],[68,86,69,73,70,70,69,57,69,53],[42,104,39,106],[43,89,43,86],[7,108,1,106],[40,113,36,128,35,133],[40,113,42,106],[-87,-14,-87,-25,-84,-27,-83,-40],[-51,-13,-52,-26,-52,-38,-58,-38,-83,-40],[-52,-26,-84,-27],[111,-22,115,-22,116,-26,120,-30,127,-30],[-478,248,-469,243,-459,240,-451,239,-444,239,-437,241,-429,244,-421,248],[417,130,423,134,430,137,440,140],[462,135,447,137,440,140],[464,146,469,146,472,142,472,138,470,134,466,133,462,135,460,139,461,143,464,146],[440,140,448,145,458,147,464,146],[217,174,190,154],[155,258,172,261,189,268,198,271],[-403,265,-399,270,-395,280,-393,288],[-421,248,-417,250,-412,255,-406,261,-403,265],[220,-655,202,-658,197,-657,172,-655],[-710,-178,-679,-176,-662,-176,-616,-177,-556,-182,-531,-189,-453,-219],[368,-106,351,-98,327,-91,309,-91,240,-91],[225,182,217,174],[-430,-229,-422,-232],[-151,-70,-139,-70],[-153,-91,-151,-70],[557,-50,564,-51,584,-54,584,-41,590,-29,563,-21,562,-28,560,-41,557,-50],[-422,-232,-411,-236],[-453,-219,-430,-229],[-425,-267,-424,-282,-419,-306],[-481,-296,-486,-290,-519,-246,-540,-218,-550,-195,-553,-188,-556,-182],[-126,-713,-126,-720,-127,-733,-120,-848,-114,-977,-119,-988],[151,-642,145,-637],[-40,-73,-34,-73],[493,376,470,366,466,363,460,359],[-298,0,-274,0],[-139,-70,-135,-54,-130,-53],[-225,-34,-225,-42,-223,-59],[193,134,192,140,190,154],[238,104,215,101],[-129,120,-133,120],[-16,351,-18,376,-18,380,-18,385,-18,390],[-16,351,-16,323,-15,316],[-18,390,-19,407],[16,416,11,420,-8,430,-17,433],[-39,169,-41,163,-41,150],[-81,189,-78,174],[286,327,299,335],[298,310,295,313],[286,327,283,332,270,351],[238,83,238,104],[364,478,377,493,389,506,394,509,403,517,416,527,428,534,436,538,443,540,466,543,493,545,511,547,540,551,560,555,568,557,575,558],[-322,-1,-318,-1,-302,0,-298,0],[-324,-1,-322,-1],[129,-621,76,-570],[154,201,155,245],[160,325,193,279,198,271],[110,605,98,611,85,621],[267,355,209,440],[114,585,97,606,85,621],[186,558,152,578,137,587,124,595],[124,595,110,605],[70,155,69,186,69,190],[292,95,328,51,348,25],[226,662,205,694,190,722,181,741],[290,593,266,617],[266,617,254,629,238,647,226,662],[2,217,8,217,19,217,19,226,2,226,2,222,2,217],[-94,392,-142,387,-182,392],[354,-510,367,-503],[374,-511,380,-520],[-107,527,-94,523,-88,520,-48,516,-37,518,-33,519,-26,523,-22,532],[174,-300,176,-329,169,-330],[152,-300,164,-301],[-233,-363,-239,-352,-260,-333,-282,-313,-291,-305,-294,-302,-321,-279],[-577,-1,-574,0],[-574,0,-551,-1,-491,-3,-471,-3,-457,-2,-446,-2,-442,-3,-393,-2,-362,-2,-344,-5,-341,-8],[158,-685,160,-680,163,-674,166,-669,172,-655],[145,-718,158,-685],[104,149,104,141],[95,150,94,141],[117,149,117,141],[110,149,110,141],[104,155,104,149],[117,155,117,149],[69,57,40,57],[-23,-67,-23,-63,-23,-57,-17,-48],[-33,-92,-34,-73,-26,-70,-23,-67],[-23,-67,-17,-67],[-18,0,-12,0],[326,624,315,616,290,593],[-298,0,-299,-22,-302,-44,-309,-57],[-58,-41,-58,-38],[-93,51,-72,52],[-72,50,-72,63],[-91,51,-93,62],[-211,228,-210,261],[-211,227,-211,228],[-210,261,-210,267],[45,-457,55,-458,53,-466,80,-468,194,-482,201,-482,201,-475,194,-474,195,-469,198,-469,208,-459,211,-467,251,-465,302,-463,317,-462,318,-468,318,-471,314,-471,305,-473,257,-473,250,-471,246,-472,226,-472,227,-478,162,-496,161,-487,159,-484,147,-482,99,-478,93,-477,55,-475,51,-476,50,-479,46,-480,45,-474,45,-470,45,-458],[246,-472,250,-471,256,-470,258,-486,256,-489,260,-498,260,-502,260,-508,262,-513,247,-476,246,-472],[392,-247,401,-234,406,-221],[134,280,137,264,138,258],[126,296,129,293,134,280],[270,351,267,355],[314,353,315,357,316,359,321,373],[203,263,242,205],[276,162,280,158],[348,25,358,12,367,-3],[295,313,294,318,294,321,294,327,296,330,299,335],[295,313,292,317,289,319,285,321,281,321,277,320],[275,319,279,322],[295,313,291,319,290,322,286,327],[299,335,307,342,311,347],[40,113,24,110],[51,130,66,132],[575,-315,589,-302,582,-293,574,-284,558,-293,566,-305,575,-315],[390,-123,390,-118,390,-115,391,-112,392,-108,395,-104,401,-100,408,-99,413,-100,416,-102,420,-106],[401,-100,408,-97,411,-93,412,-88,412,-82],[394,-66,406,-63],[393,-102,395,-104],[421,-109,390,-115],[95,89,95,86],[95,108,94,138],[88,138,94,138,104,138,110,138,117,138],[104,141,104,138],[110,141,110,138],[117,138,95,108],[117,118,117,138],[21,131,23,116],[24,110,23,110],[23,116,24,110,24,103],[-542,158,-540,147],[445,-230,518,-242],[-321,-279,-287,-293,-282,-295]];
-const MODERN_LABELS=[["Corso Porta Borsari",-237,0,1],["Corso Sant'Anastasia",152,-3,1],["Via Cappello",-15,205,0],["Via Leoni",-19,449,0],["Via Mazzini",-221,176,1],["Via Pellicciai",-101,84,1],["Via Emilei",-134,-92,1],["Via Stella",-62,265,1],["Via Duomo",236,-205,0],["Via Dante",69,138,0],["Via Quattro Spade",-185,118,0],["Via Fama",-105,-86,0],["Via Catullo",-272,112,0],["Via Ponte Pietra",387,-118,1],["Via San Mamaso",-65,-179,1],["Via Zambelli",-94,351,1],["Via Pescheria Vecchia",154,157,0]];
+const MODERN=[[-416,-307,-414,-315,-401,-363,-398,-373,-377,-452,-374,-462,-355,-534,-352,-545,-327,-639,-324,-651,-305,-722],[-187,0,-188,-6,-187,-90],[-273,174,-272,222,-274,265],[-344,-6,-344,-1,-343,4,-342,18,-340,43,-339,47,-340,85,-340,96,-341,120,-337,166],[-314,201,-311,268],[34,-553,36,-540],[36,-540,21,-532,-13,-517,-46,-503,-65,-495,-88,-479,-124,-456,-135,-453,-138,-451,-148,-444,-158,-434,-200,-405,-207,-400],[-209,-337,-212,-340,-217,-348,-224,-359,-227,-361,-230,-363],[44,-465,45,-454],[55,-358,56,-347,58,-335,61,-304,62,-293],[-135,-453,-135,-461,-133,-501,-129,-563,-127,-603,-127,-610,-126,-618,-120,-703,-120,-712],[-120,-732,-132,-731,-139,-731],[151,-633,147,-638,63,-722,62,-737],[135,-618,143,-614,177,-599],[426,-220,447,-223],[-470,215,-466,208,-460,197,-451,187],[508,-18,488,25,472,61,464,75,456,87,448,97,430,118,416,137,382,182,354,223,345,237,335,253,324,269,295,315],[333,436,335,434,341,431,357,419,364,411,378,395,384,386,398,372,406,368,412,359,438,326,447,314,456,286,459,276,460,265,460,238,459,215,459,211],[195,275,202,277],[428,203,445,158,447,152],[-405,-229,-404,-226,-359,-127],[-359,-127,-356,-120],[-387,288,-388,285,-401,257,-422,230],[-23,567,-24,544,-25,538,-27,534],[34,-553,26,-565,23,-569,14,-577,10,-580],[-285,-753,-276,-739,-214,-670,-210,-666,-183,-637,-165,-618],[39,-510,42,-506,45,-504,48,-504,54,-507],[-352,-545,-344,-543,-241,-521,-133,-501],[-324,-651,-315,-650,-228,-631,-218,-629,-194,-624,-170,-619,-165,-618],[-262,-422,-241,-521,-228,-582,-220,-622,-218,-629],[-207,-400,-213,-392,-225,-371,-230,-363],[-377,-452,-369,-450,-262,-422,-220,-409,-209,-402],[-456,-289,-465,-293,-478,-298],[-423,-269,-438,-280,-456,-289],[-279,-296,-248,-313,-209,-337,-67,-424,-30,-441,32,-460,39,-463,44,-465],[-318,-279,-352,-263,-386,-247,-392,-245,-409,-238],[-257,-333,-267,-336,-389,-370,-398,-373],[-398,-373,-406,-375,-454,-389,-469,-393,-480,-396],[-470,215,-453,216,-440,213,-315,181,-288,174,-273,174,-250,175,-228,175,-186,176,-127,174,-108,175,-79,173,-41,171,-22,168,-17,167],[571,405,574,366,581,257,581,252,584,212,584,204],[584,204,583,119,581,65],[178,-651,191,-658,195,-666,194,-677],[178,-651,187,-631,201,-601],[-19,319,-17,274,-17,264,-17,226,-16,203,-16,190,-17,167,-19,145],[69,-91,15,-89,-19,-89,-24,-89,-33,-90,-38,-90,-58,-89,-104,-89,-133,-90,-152,-90,-164,-90,-187,-90,-193,-91,-249,-92,-254,-92,-258,-94,-262,-94,-271,-95],[398,-177,326,-177],[239,-288,239,-265,238,-200,240,-178,241,-88],[-19,145,31,154,50,157,69,158],[153,249,153,255,153,259,153,262],[328,-309,309,-310,304,-310,290,-301,280,-285,255,-284,239,-288],[-356,-120,-345,-125,-323,-137,-276,-167,-183,-226,-105,-276,-27,-325,6,-342,27,-352,43,-356,52,-358],[328,-309,335,-278],[147,-375,142,-375,70,-362,61,-360,55,-358],[157,-336,107,-338,75,-337],[-16,-256,-18,-177,-19,-89],[-103,0,-104,-84,-104,-89],[-322,90,-296,89,-272,89],[-108,175,-108,172,-107,120,-102,85],[-27,451,-31,449,-36,448,-91,453,-185,456,-213,452,-264,442,-303,434,-331,427,-360,419],[-91,453,-93,484,-93,517,-93,522],[-184,329,-146,336,-102,357,-97,359,-26,353,-20,353],[-45,386,-53,395,-66,400,-87,397,-95,394],[-97,359,-95,394],[-20,353,69,350],[-361,5,-362,18,-364,29,-367,39,-370,47,-373,53,-395,75,-408,95,-420,117,-449,174],[152,204,185,198,190,196,209,186],[67,193,67,197,65,257,65,263],[223,186,237,170,253,150,288,104,291,100],[-271,-95,-275,-62,-274,0],[172,-326,169,-299],[-263,-143,-258,-133,-257,-121,-257,-104,-257,-98,-258,-94],[-12,3,5,2],[328,-309,338,-317,362,-319,376,-282,377,-278],[-422,230,-388,220,-345,209,-329,205,-314,201],[372,-497,376,-502,378,-505],[-17,-46,-17,-54,-17,-60,-17,-65,-25,-68,-29,-67,-28,-55,-18,-46],[-18,2,-16,-12,-15,-29,-15,-38,-15,-42,-17,-46],[-25,-67,-26,-70,-24,-89,-33,-90,-38,-90,-39,-71,-29,-67,-25,-67],[40,88,42,91,65,92,68,92,71,92,82,92,94,92,104,92,104,86,104,75,104,56,71,56,67,55,40,56,40,59,40,88],[69,56,68,0],[11,88,7,88,3,87,-19,85,-24,85],[-404,-98,-402,-91,-401,-87,-399,-67,-397,-46,-396,-33,-394,-9,-393,-4],[-356,-120,-363,-117,-404,-98,-462,-81,-485,-74,-493,-65,-493,-59,-508,-60,-568,-65,-574,-65],[-574,-65,-577,-9,-577,-4],[-493,-59,-483,-56,-476,-48,-473,-39,-472,-10,-471,-5],[-401,-87,-377,-92,-375,-85,-353,-87,-346,-88],[-760,-10,-743,-11,-718,-12,-707,-11,-694,-10,-669,-9,-630,-6,-625,-6,-577,-4],[210,-298,187,-299,171,-299,172,-326,180,-325,188,-325,202,-326,214,-329,214,-321,214,-318,210,-318,210,-314,211,-310,215,-310,215,-305,215,-299,220,-299,225,-297,228,-299,232,-299,235,-297,240,-299,245,-299,248,-297,253,-299,255,-290,259,-287,254,-287,248,-288,241,-291,231,-293,214,-295,210,-298],[153,89,116,89],[-279,305,-305,307],[-120,-732,-113,-731,6,-729,13,-729,20,-729,46,-730,62,-737,124,-762,130,-764],[112,-811,105,-809,81,-803,11,-793,7,-793],[328,56,338,65],[253,150,270,164],[237,88,248,87,276,89,284,93,291,100],[238,70,255,70,286,68,294,55,300,41,305,32,305,14],[304,111,291,100],[-299,377,-241,372,-188,354],[12,419,22,420,27,420,50,415,60,412,71,390,75,366,69,350],[274,11,305,14,317,16,328,20,340,26,348,31],[241,-87,241,-66,240,-16,239,0],[239,0,238,8,237,46,238,70,238,74,237,88],[7,2,31,1,49,0,61,0],[61,0,65,-43,68,-70,69,-91],[241,-87,180,-89,155,-90,150,-90,97,-91,69,-91],[-17,264,-100,266],[-23,567,-11,559,-6,558,-2,556,6,550,11,545,20,533,35,510,70,456,134,361,157,329],[240,210,246,208,275,167],[153,158,153,89],[109,158,102,159,93,158,86,158,69,158],[69,350,68,332],[152,2,153,-25,155,-90],[153,-176,153,-183,153,-205,153,-214,153,-235,154,-245,154,-252,155,-265],[-314,201,-314,191,-315,186,-315,181],[188,158,153,158],[240,210,232,197,223,186],[-274,0,-273,37,-273,85,-272,89,-272,111,-273,136,-273,172],[153,89,152,2],[150,-90,149,-129,149,-169,150,-174,153,-176],[157,-336,155,-322,155,-296],[409,-214,410,-205,406,-189,398,-177,393,-126,391,-117,388,-112,369,-100],[367,3,373,-10,377,-18,382,-31,391,-61,393,-67,394,-77,394,-80,394,-84,392,-90,390,-93,384,-97,377,-100,369,-100],[237,108,231,142,226,162,220,170,215,178],[153,89,199,90,227,88,237,88],[87,144,93,144,102,144,109,144,116,144,122,144,122,121,116,121,114,115,105,115,105,111,94,111,87,111,87,141],[68,92,68,135,68,141,69,158],[19,133,34,136,50,139,50,133,50,108,41,107,23,106,22,113,21,116,19,133],[31,1,33,18,36,58],[96,-264,98,-210,96,-175],[63,-264,96,-264,155,-265],[529,-261,536,-262,541,-266,555,-286,568,-300,576,-309,593,-326],[563,-287,577,-278,584,-286,589,-293,577,-303,570,-296,563,-287],[605,-319,611,-317,618,-315,629,-313,689,-312,698,-312,704,-311,716,-310,724,-307,732,-304,738,-302],[-74,87,-75,105,-77,122,-79,169,-79,173],[-43,152,-44,147,-45,144,-46,135,-46,106],[-75,105,-46,106],[569,-378,557,-366,533,-343],[-93,64,-73,65,-71,51,-93,51,-94,64],[-73,51,-73,39,-78,36,-82,31,-85,25,-87,-1],[-77,122,-103,120,-107,120],[-107,120,-130,121],[-146,86,-143,121,-134,121,-127,172],[-186,176,-187,136,-186,119,-185,86,-186,13,-187,0],[-184,268,-184,234,-185,219,-186,179],[-185,456,-184,414,-186,393,-189,379,-190,366,-188,354,-184,329,-186,305,-184,268],[-93,53,-98,52,-123,49,-128,45],[-132,38,-133,36,-137,30,-146,29,-148,39,-137,39,-132,38],[-128,45,-131,40],[-131,40,-133,36,-137,30,-136,1],[153,158,153,161,152,204],[238,8,273,9,274,-4,275,-16,268,-16,240,-16,239,0,238,8],[69,-175,-15,-177,-18,-177,-40,-178,-64,-177],[326,-177,240,-178,153,-176,96,-175,72,-175],[377,-278,383,-265,388,-255,393,-244,395,-241],[326,-86,326,-177],[62,-293,155,-296],[172,-326,157,-336],[-16,-256,8,-263,18,-268,24,-271,38,-280,48,-290,54,-293,62,-293],[-78,-232,-74,-234,-35,-248,-16,-256],[265,-509,264,-499,259,-483,255,-466],[205,444,182,479,180,482,151,523,108,588],[529,-261,529,-257,529,-249,529,-241],[500,288,495,301,492,308,487,318,474,339,465,354,456,366,448,377,440,388,432,396,426,403,416,414,403,425,395,432,386,440,378,446,362,455,359,457,347,464],[-61,-89,-59,-154],[-79,-179,-79,-192,-78,-211,-77,-216],[-158,0,-159,-25,-161,-42,-162,-46],[111,-38,111,-33,111,-28,111,-22,111,-19,113,-17,119,-18,128,-22,128,-27,121,-29,122,-37,115,-37,111,-38],[128,-27,153,-25],[584,204,597,204,625,202,628,201,645,200,659,199,664,199,667,199,678,199,688,199,697,196,724,184,742,169,740,164,729,147,722,139,721,134],[469,151,473,156,474,159,476,208],[477,210,488,210,517,207,525,206,536,205,552,206,560,205,584,204],[311,358,316,354,340,334,343,331,363,308,384,277,388,272,419,222,428,203],[-228,307,-220,307,-208,306,-196,305,-186,305],[-279,305,-271,310,-228,307],[-279,265,-279,271,-279,305],[-551,-4,-551,2,-550,16,-546,33,-543,43,-545,87,-544,120,-546,143],[-584,133,-582,122,-582,101,-582,96,-579,60,-574,1,-574,-4],[-640,115,-639,110,-638,88,-635,65,-630,-6],[-670,110,-670,40,-669,-5,-669,-9],[-707,-11,-709,54],[-87,-1,-88,-5],[-116,-213,-114,-207,-110,-198,-106,-179,-105,-164,-103,-137,-104,-89],[-133,-90,-131,-136,-103,-137],[-449,174,-463,166,-486,157,-520,149,-541,145,-546,143,-576,137,-584,133,-610,126,-625,120,-640,115,-648,112,-670,110,-710,107,-730,107,-748,109,-754,112],[86,680,129,646,168,618,170,616,234,583,273,553],[38,-280,39,-266,63,-264],[-341,120,-346,120,-400,122,-420,117],[-408,95,-430,89,-429,69,-450,38],[438,326,384,277],[364,411,360,401,357,392,351,366,344,345,340,334],[324,269,335,311,342,328,343,331],[364,411,377,423],[-39,202,-40,175,-41,171],[-43,217,-57,218,-66,219,-87,217,-82,191],[-87,217,-85,236],[-39,202,-77,199,-80,190],[41,195,32,194,23,194,3,193,-16,190],[384,512,372,523,362,531,353,538,338,550,300,582,284,598],[-129,-563,-135,-564,-223,-581,-228,-582],[530,-186,552,-185],[-27,534,-17,528,-18,520,-19,514,-24,471,-27,451],[178,-651,163,-643,157,-638],[-423,-269,-415,-250,-411,-242,-409,-238],[43,-479,50,-497,54,-507],[-276,-167,-274,-165,-271,-158,-266,-142],[378,-505,389,-497,396,-490,404,-481,427,-452,442,-434,460,-412,480,-390,489,-379,497,-367],[300,582,278,554,273,553],[36,58,29,60],[205,444,207,448,210,450,213,450,231,433,237,432,281,393,283,390,279,370,273,366,264,360],[333,436,328,439,298,460,209,511],[513,129,475,133,468,141],[508,256,496,285,490,301,484,314,478,325,470,337,463,349,456,358,449,369,440,380,423,400,416,406,413,402,400,413,397,418,388,431,382,436,376,440,369,445,356,453,349,457,346,457,356,447,360,444,364,440,371,431,375,426,377,423,390,407,403,387,406,381,403,378,410,367,420,374,430,360,427,358,433,350,426,345,449,314,457,290,458,287,459,284,462,276,462,255,462,243,462,226,462,215,474,214,476,234,476,244,479,244,482,240,482,215,492,214,509,214,512,215,515,217,516,220,517,224,515,229,513,235,508,256],[347,464,351,471,357,481,359,484],[-321,95,-340,96],[560,-396,568,-388,570,-385,571,-382,569,-378,576,-369,580,-364,580,-360,579,-345],[629,-313,631,-300,635,-287],[499,-365,509,-377,517,-391,524,-403,529,-413,536,-418,542,-420,555,-424,558,-424,563,-422],[499,-365,509,-349,513,-344,514,-339,515,-333,515,-327],[-553,218,-552,209,-551,199,-551,195,-547,172,-543,155],[-320,166,-319,156,-321,96,-322,90,-324,31,-316,27,-294,27],[-100,266,-100,341,-102,357],[108,588,112,593,114,595,119,599],[31,154,33,138],[721,134,710,128,695,125,687,123,680,122,674,120,670,117,662,110,654,103,644,93,633,83,606,63,601,60,576,52],[61,-304,55,-304,46,-304,38,-305,24,-304,12,-300,9,-298],[70,-129,149,-129],[69,-91,70,-129,69,-175],[239,0,199,-1,183,-1,169,0,152,2],[55,264,-17,264],[69,-175,63,-264,62,-293],[82,-567,66,-556,53,-548,50,-546,46,-545,39,-542,36,-540],[198,-13,198,-19,170,-20,169,0],[199,-1,198,-13],[-20,409,-21,435,-35,433],[-112,-847,-18,-869,-6,-871],[-184,268,-188,268,-212,267,-219,267,-227,267,-258,266,-274,265,-279,265],[-288,179,-312,185,-317,186,-322,186,-327,187,-339,191,-359,196,-368,199,-399,207,-404,209,-424,213,-440,217,-438,224,-470,215,-461,211,-450,212,-441,210,-437,210,-425,206,-409,203,-389,198,-376,195,-345,186,-336,184,-315,178,-316,169,-315,165,-301,171,-293,172,-284,171,-275,171,-270,172,-264,172,-259,172,-251,173,-246,172,-226,173,-220,173,-215,173,-205,173,-190,174,-186,174,-149,173,-130,172,-108,172,-105,171,-96,171,-91,170,-84,169,-80,169,-75,168,-70,168,-65,168,-57,169,-53,168,-48,168,-45,168,-43,165,-23,161,-22,168,-22,173,-38,175,-42,176,-46,176,-76,175,-79,176,-83,177,-93,177,-98,178,-106,178,-110,178,-131,177,-142,177,-149,177,-160,179,-182,179,-186,179,-190,179,-201,179,-205,179,-219,178,-219,184,-219,188,-223,187,-222,178,-231,178,-245,177,-253,177,-270,177,-273,177,-283,177,-288,177],[92,334,97,325,112,314,120,306,124,300],[507,33,504,29,500,25,496,23,491,24,488,25],[388,-213,400,-212,409,-214],[-311,268,-310,271,-306,299,-305,307],[-309,-57,-311,-63,-313,-81,-311,-92,-309,-96,-307,-101],[392,188,428,203],[428,203,459,211,477,210],[367,3,369,5,375,9],[-212,227,-209,221,-187,220],[-272,222,-230,227,-213,227],[-185,219,-142,220,-122,221,-118,219],[-118,219,-114,213,-109,178],[-337,166,-320,166,-315,167,-302,173,-288,174],[335,-278,346,-277,365,-278,377,-278],[393,-244,388,-213],[409,-214,421,-219],[293,-219,272,-212,255,-203,238,-200],[335,-278,325,-274,322,-270,324,-219,323,-177],[238,-200,223,-200,208,-199,190,-200],[-165,-618,-127,-610,-116,-608,-15,-588,0,-585,10,-580],[65,263,75,263,111,262,136,261,153,262],[307,352,311,358],[-24,85,-30,85,-74,87,-97,85,-102,85,-123,85,-146,86,-164,87,-185,86],[-273,85,-269,85],[273,553,281,547,330,510,354,489,359,484],[220,666,253,706,266,724,273,739],[-19,145,-24,85],[273,553,250,522],[311,358,303,362,282,369,279,370],[313,485,309,479,307,476,298,460],[347,464,340,468,336,470,313,485,255,519,250,522,181,562],[165,-681,165,-672,165,-663,164,-655,161,-647,157,-638],[155,-265,167,-265,188,-265,194,-265,239,-265],[167,-297,167,-265],[523,316,520,290],[-441,-307,-436,-298,-429,-281,-424,-272,-423,-269],[-446,-320,-442,-309],[75,366,90,370,106,342],[199,90,196,117,194,136],[-291,-303,-290,-299,-288,-296,-284,-293],[10,-580,-8,-599,-13,-604,-110,-702,-120,-712,-139,-731,-216,-806,-225,-814],[421,-219,426,-220],[568,33,555,35,536,34,507,33],[552,206,542,150,542,127,541,117,531,92],[529,80,529,58,536,47,536,34],[531,92,529,80],[515,-327,512,-322],[-274,0,-237,0,-229,0,-223,0,-187,0,-183,0,-158,0,-136,1,-122,1,-103,0,-87,-1,-51,0,-18,2],[-88,-5,-87,-12],[-340,-8,-340,-13,-345,-75,-346,-88],[68,332,80,332,92,334],[360,231,388,272],[-449,174,-453,182,-451,187],[195,275,199,269],[197,215,193,213,182,209,179,209,166,207,163,207,154,209,155,204,156,195,166,193,180,191,189,190,189,185,195,183,205,181,208,180,212,178,214,181,219,189,210,198,197,215],[-271,-95,-307,-101,-337,-103,-347,-103],[581,65,568,69,546,86,531,92],[583,119,541,117],[-436,228,-478,223,-529,218,-544,218,-553,218,-576,219,-632,232,-655,238,-660,241],[-478,223,-470,215],[-244,111,-272,111],[536,-75,535,-82,533,-91,532,-96,531,-104],[536,-75,531,-78,528,-79],[-307,-101,-302,-116,-295,-127,-266,-142],[-17,226,-14,226],[-305,307,-303,321,-300,354,-299,377],[-356,-120,-347,-103,-347,-93,-346,-88],[-340,-8,-334,-2,-329,-2,-324,-2],[-416,-307,-434,-299,-436,-298,-454,-290],[-218,-629,-214,-648,-210,-666],[151,-633,135,-618],[177,-599,181,-597,197,-590,209,-586,218,-583],[177,-599,193,-597,201,-601],[531,-104,526,-80,525,-75,522,-65,518,-54,511,-32,510,-26,508,-18],[-340,43,-358,41,-367,39],[-361,3,-344,-1,-343,4,-342,18,-362,18,-361,7,-361,3],[-188,86,-185,86],[-211,85,-205,85,-188,86],[-230,85,-211,85],[-245,85,-230,85],[-263,85,-245,85],[-268,85,-263,85],[9,-298,8,-263],[-229,0,-229,24,-221,24],[-223,0,-223,-33,-236,-36],[-237,0,-237,-5,-237,-15],[-58,-39,-59,-55],[-73,-73,-51,-73,-51,-70,-58,-70,-59,-55,-66,-56,-65,-69,-74,-70,-73,-73],[-58,-72,-50,-71],[-50,-71,-40,-71],[-58,-74,-58,-87],[-59,-55,-58,-70,-58,-74],[-17,-65,12,-64,15,-89],[65,-43,37,-48,33,-47,16,-42,12,-64],[33,18,46,18,49,0],[29,60,11,61],[109,158,109,152],[93,158,93,153],[94,111,94,92],[116,89,104,89],[116,89,117,104,116,109],[42,91,41,106],[116,109,116,121],[87,141,81,141,71,141],[71,141,68,141],[35,130,50,133],[65,135,68,135],[22,113,6,110],[183,-1,183,4,183,24],[-14,226,0,226],[0,226,11,226],[157,-336,152,-345,150,-353,149,-360,149,-371,147,-375],[388,-213,376,-216,361,-217,339,-221,324,-219],[155,-265,155,-270,155,-296],[-64,-177,-79,-179,-83,-179,-106,-179],[-64,-177,-63,-188,-64,-200,-65,-212,-70,-218,-75,-217,-78,-232],[-142,-203,-116,-213,-95,-223,-78,-232],[-78,-232,-103,-274],[-59,-154,-40,-155],[-59,-154,-63,-166,-64,-177],[-83,-179,-84,-168,-76,-168,-75,-165,-63,-166,-64,-177,-83,-179],[-279,265,-283,265,-311,268],[-311,268,-331,270,-348,272,-357,277,-363,281,-381,287,-387,288],[-184,268,-100,266],[-409,-238,-406,-231],[239,-288,218,-291,196,-294],[333,436,343,458,347,464],[278,163,311,117,344,69],[-451,187,-447,191,-431,185,-397,176,-374,172,-356,169,-337,166],[581,65,576,52,568,33,560,-13,559,-20,557,-34,550,-49,538,-71,536,-75],[560,-396,550,-403,543,-412,539,-419],[-13,-587,-10,-589,-8,-592,-8,-599],[29,-590,27,-583,24,-580,19,-577,14,-577],[375,9,389,-13,395,-26,400,-40,406,-57,413,-76,421,-100,422,-103],[-480,-396,-476,-386,-446,-320],[-442,-309,-441,-307],[-237,-15,-237,-22],[-237,-22,-236,-33],[-236,-33,-236,-36],[-129,-52,-125,-51,-122,1],[196,-294,194,-265],[97,-91,95,-72,91,-68,68,-70],[-35,-226,-36,-233,-35,-248],[-17,-282,-15,-264,-16,-256],[68,332,68,267,65,263],[92,334,106,342,122,353],[-23,409,-9,409,6,410,12,419],[529,-241,529,-235,529,-221,530,-186,533,-120,531,-104],[520,-234,529,-235],[595,-329,611,-347,617,-352,626,-359,640,-373,658,-388,661,-391,668,-397,682,-407],[152,2,99,0,68,0,61,0],[-266,-142,-263,-143,-234,-158,-182,-184,-174,-189,-170,-191,-142,-203],[-52,25,-85,25],[-170,-191,-177,-215,-181,-224],[-24,85,-24,78,-21,60,-15,28,-12,3],[-64,-200,-42,-202,-37,-203],[99,0,100,-19,111,-19],[187,482,198,470,234,437,237,432],[209,511,190,524],[23,106,41,106,52,107,52,133,52,141,33,138,20,135],[85,143,86,112],[-35,-1059,-30,-1053,-29,-1048,-6,-871,-5,-860,4,-793,12,-737,13,-729,29,-598,29,-590,31,-572,34,-553],[-187,136,-208,133],[704,-94,725,-96,827,-132,850,-141,859,-151,872,-166,877,-180,874,-209,875,-224,881,-235,888,-244,910,-253,920,-258,959,-279],[703,-94,704,-94],[238,-571,257,-562,293,-542,298,-539,341,-515,359,-505],[201,-601,209,-591,218,-583],[180,-89,183,-111,202,-111,210,-120,211,-131,207,-153],[122,-247,140,-247,154,-245],[593,-326,605,-319],[593,-326,595,-329],[579,-345,582,-339,592,-330],[567,-410,567,-406,566,-403,560,-396],[335,253,346,278],[318,379,329,422,333,436],[330,510,321,496,313,485],[209,511,187,482],[67,195,41,195],[238,11,274,11],[238,74,223,73,214,70,208,69,200,68,199,75],[231,144,209,140],[153,158,125,158,116,158,109,158],[18,-268,21,-254],[324,-219,293,-219],[153,-214,144,-214,136,-214],[168,-297,177,-296,196,-294],[-586,168,-583,167,-581,163,-577,140],[-422,230,-429,230,-436,228],[-19,325,-37,324],[-22,387,-45,386],[-36,444,-35,435,-29,408,-23,409],[6,410,13,405],[-39,202,-41,211,-43,217],[-16,203,-39,202],[-273,136,-296,137],[65,263,55,264],[385,-514,375,-510,368,-507,359,-505],[385,-514,395,-530,397,-534,403,-546],[542,264,518,257,512,273,509,279,507,285,515,288,520,290,524,290,523,283,524,280,539,264],[520,290,520,285,509,279,505,277],[39,-510,41,-497,43,-479],[54,-507,56,-513,60,-524,66,-538,82,-567],[36,-540,38,-524,39,-510],[218,-583,223,-579,229,-576,238,-571],[372,-497,397,-473,418,-449,445,-417,454,-407,478,-381,490,-361,512,-322,523,-293,528,-270,529,-261],[15,88,11,88],[68,92,42,88,15,88],[9,23,10,31,11,58,11,63,11,83,11,88,6,109,3,130,1,139,-6,137,0,109,1,102,3,91,3,87,4,60,4,15,3,12,0,8,9,9,9,14,9,23],[45,-453,50,-406,55,-364],[55,-364,55,-358],[278,328,283,332],[202,277,271,324],[43,-479,44,-465],[521,225,520,231,514,253,505,277,500,288],[508,-18,507,3,507,33,507,37,510,107,513,129,519,163,524,196,525,206,524,214,521,225],[68,89,94,89,104,89],[68,89,68,76,69,73,69,60,69,56],[41,107,38,108],[42,91,42,88],[6,110,0,109],[39,116,35,130,34,136],[39,116,41,109],[-87,-12,-87,-24,-84,-26,-83,-39],[-51,-11,-51,-24,-51,-36,-58,-37,-83,-39],[-51,-24,-84,-26],[111,-19,115,-19,117,-23,120,-26,128,-27],[-480,246,-471,240,-462,238,-454,237,-446,237,-439,239,-431,242,-423,247],[416,137,421,140,429,143,438,146],[461,141,446,143,438,146],[462,152,467,153,471,149,471,145,468,141,465,140,461,141,458,146,459,149,462,152],[438,146,447,152,457,154,462,152],[215,178,188,158],[153,262,170,265,187,272,195,275],[-406,264,-402,269,-398,279,-396,286],[-423,247,-419,249,-415,253,-409,259,-406,264],[226,-651,208,-653,204,-653,178,-651],[-708,-183,-677,-180,-660,-180,-614,-180,-554,-185,-529,-192,-451,-221],[369,-100,352,-92,328,-85,310,-86,241,-87],[223,186,215,178],[-428,-230,-419,-234],[-151,-69,-138,-69],[-152,-90,-151,-69],[558,-43,565,-44,584,-46,584,-33,590,-21,564,-13,562,-20,560,-33,558,-43],[-419,-234,-409,-238],[-451,-221,-428,-230],[-423,-269,-421,-284,-416,-307],[-478,-298,-483,-292,-517,-248,-538,-221,-549,-198,-552,-191,-554,-185],[-120,-712,-120,-719,-120,-732,-112,-847,-104,-976,-109,-987],[157,-638,151,-633],[-40,-71,-33,-71],[490,383,466,372,463,370,456,366],[-298,0,-274,0],[-138,-69,-134,-53,-129,-52],[-225,-34,-224,-42,-222,-59],[192,138,191,144,188,158],[237,108,214,105],[-130,121,-134,121],[-20,353,-21,378,-22,382,-22,387,-22,392],[-20,353,-19,325,-19,319],[-22,392,-23,409],[12,419,7,423,-12,433,-21,435],[-41,171,-43,165,-43,152],[-82,191,-79,176],[283,332,295,340],[295,315,292,318],[283,332,280,337,267,355],[237,88,237,108],[359,484,372,499,384,512,389,516,398,524,411,533,423,541,430,544,437,546,461,549,488,552,505,554,534,559,554,563,563,564,570,566],[-322,-1,-318,-1,-302,0,-298,0],[-324,-2,-322,-1],[135,-618,82,-567],[152,204,153,249],[157,329,190,283,195,275],[104,608,92,615,79,624],[264,360,205,444],[108,588,91,609,79,624],[181,562,147,582,132,591,119,599],[119,599,104,608],[69,158,67,189,67,193],[291,100,328,56,348,31],[220,666,198,699,184,726,173,745],[284,598,260,622],[260,622,247,634,232,652,220,666],[0,220,6,220,17,220,17,229,0,228,0,224,0,220],[-97,394,-146,388,-186,393],[359,-505,372,-497],[378,-505,385,-514],[-112,528,-99,524,-93,522,-53,518,-42,520,-38,521,-31,525,-27,534],[177,-296,180,-325,172,-326],[155,-296,167,-297],[-230,-363,-235,-352,-257,-333,-279,-313,-288,-305,-291,-303,-318,-279],[-577,-4,-574,-4],[-574,-4,-551,-4,-491,-5,-471,-5,-457,-4,-446,-4,-442,-4,-393,-4,-362,-4,-344,-6,-340,-8],[165,-681,167,-676,170,-670,172,-665,178,-651],[152,-714,165,-681],[102,153,102,144],[93,153,93,144],[116,152,116,144],[109,152,109,144],[102,159,102,153],[116,158,116,152],[69,60,40,59],[-22,-65,-22,-61,-22,-55,-17,-46],[-33,-90,-33,-71,-25,-67,-22,-65],[-22,-65,-17,-65],[-18,2,-12,3],[320,629,309,621,284,598],[-298,0,-298,-22,-302,-45,-309,-57],[-58,-39,-58,-37],[-93,53,-73,53],[-73,51,-73,65],[-91,53,-93,64],[-213,228,-212,261],[-213,227,-213,228],[-212,261,-212,267],[49,-454,59,-455,58,-463,85,-465,198,-478,206,-478,206,-470,199,-470,199,-464,203,-464,212,-455,215,-463,255,-460,306,-457,322,-457,322,-463,322,-466,319,-466,309,-467,262,-468,255,-466,250,-467,230,-468,232,-473,167,-492,166,-483,164,-480,152,-479,103,-474,97,-474,59,-472,56,-473,54,-476,50,-477,49,-471,49,-467,49,-455],[250,-467,255,-466,261,-465,263,-481,260,-484,264,-493,264,-497,265,-503,267,-508,252,-471,250,-467],[395,-241,403,-228,409,-214],[131,283,135,268,136,261],[124,300,126,296,131,283],[267,355,264,360],[311,358,312,362,313,365,318,379],[201,267,240,210],[275,167,278,163],[348,31,357,18,367,3],[292,318,291,323,291,327,291,332,292,336,295,340],[292,318,289,322,286,324,282,326,278,326,274,325],[271,324,276,327],[292,318,288,324,287,327,283,332],[295,340,303,348,307,352],[39,116,23,113],[50,133,65,135],[577,-307,592,-294,585,-285,577,-276,561,-286,569,-297,577,-307],[391,-117,391,-112,391,-109,392,-106,393,-102,396,-98,402,-94,409,-93,414,-93,417,-96,421,-100],[402,-94,409,-91,412,-87,412,-81,413,-76],[395,-60,406,-57],[394,-96,396,-98],[422,-103,391,-109],[94,92,94,89],[94,111,93,141],[87,141,93,141,102,142,109,142,116,142],[102,144,102,142],[109,144,109,142],[116,142,94,111],[116,121,116,142],[20,134,22,118],[23,113,22,113],[22,118,23,113,23,106],[-543,155,-541,145],[447,-223,520,-234],[-318,-279,-284,-293,-279,-296]];
+const MODERN_LABELS=[["Corso Porta Borsari",-237,0,1],["Corso Sant'Anastasia",152,0,1],["Via Cappello",-17,264,0],["Via Leoni",-24,451,0],["Via Mazzini",-223,177,1],["Via Pellicciai",-102,85,1],["Via Emilei",-133,-90,1],["Via Stella",-17,266,1],["Via Duomo",239,-200,0],["Via Dante",68,141,0],["Via Quattro Spade",-186,119,0],["Via Fama",-104,-84,0],["Via Catullo",-273,111,0],["Via Ponte Pietra",388,-112,1],["Via San Mamaso",-64,-177,1],["Via Zambelli",-97,353,1],["Via Pescheria Vecchia",153,161,0]];
 
 let MAP=null;
 function buildMap(){
@@ -1911,6 +1991,7 @@ $('#bFly').addEventListener('click',()=>{ setMobileMenu(false); toggleFly(); });
 $('#bTour').addEventListener('click',()=>{ setMobileMenu(false); startTour(); }); $('#bTour2').addEventListener('click',startTour);
 $('#bLink').addEventListener('click',()=>{ setMobileMenu(false); copyLink(); });
 $('#bSound').addEventListener('click',()=>{ soundOn(!SND.on); track('sound_toggle',{enabled:SND.on}); });
+$('#bPost').addEventListener('click',()=>{ postOn(!POST); track('effects_toggle',{enabled:POST}); });
 addEventListener('pointerdown',()=>{ if(SND.on) soundOn(true); },{once:true});
 addEventListener('keydown',()=>{ if(SND.on) soundOn(true); },{once:true});
 $('#tourNext').addEventListener('click',()=>{ if(tour){ track('tour_next',{step:tour.i+1}); tour.dwell=0; if(!travel) tourNext(); } });
@@ -2269,6 +2350,7 @@ function update(dt,time){
   }
   camera.rotation.set(pitch,yaw,0);
   sky.position.copy(camera.position);
+  sky.material.uniforms.uTime.value=time;
   const alt=camera.position.y-Math.max(0,groundH(camera.position.x,camera.position.z));
   const fwd=Math.min(alt*1.2,500);
   sunFollow(camera.position.x-Math.sin(yaw)*fwd,camera.position.z-Math.cos(yaw)*fwd,alt>40?clamp(alt*1.3,200,760):140);
@@ -2277,14 +2359,14 @@ function update(dt,time){
   updateLamps(time);
   updatePeople(dt,time); updateBoats(dt); updateRemoteVisitors(dt,time);
 }
-function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); sizeComposer(w,h); }
 addEventListener('resize',resize);
 
 let last=performance.now(), hudT=0;
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
   update(dt,now/1000);
-  renderer.render(scene,camera);
+  if(POST&&composer){ gradePass.material.uniforms.uTime.value=now/1000; composer.render(); } else renderer.render(scene,camera);
   drawCompass(); drawMini();
   hudT+=dt; if(hudT>.25){ hudT=0; locate(); }
   requestAnimationFrame(frame);
@@ -2308,6 +2390,8 @@ function init(){
   setHour(HOURS[h0]?h0:'giorno');
   applyHash();
   $('#bSound').classList.toggle('on',SND.on);
+  if(POST&&!HQ) POST=false;
+  postOn(POST);
   resize(); $('#loading').remove(); startPresence();
   requestAnimationFrame(t=>{ last=t; frame(t); });
 }
